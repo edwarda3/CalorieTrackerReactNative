@@ -23,11 +23,6 @@
       "filename" : "AppIcon@2x~ipad.png",
       "idiom" : "ipad",
       "scale" : "2x"
-    },
-    {
-      "filename" : "AppIcon~ios-marketing.png",
-      "idiom" : "ios-marketing",
-      "scale" : "1x"
     }
   ],
   "info" : {
