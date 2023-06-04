@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Button, FlatList, Keyboard, Pressable, SafeAreaView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import { Button, FlatList, Keyboard, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
 import { MealData, MealPreset } from '../types/Model';
@@ -97,7 +97,9 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
     )
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{
+            flex:1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
+        }}>
             <Pressable style={{ padding: 10 }} onPress={refresh}>
                 <Text style={styles.title}>Total Presets: {presets.length}</Text>
             </Pressable>
@@ -121,7 +123,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                         placeholder='Preset Meal Kcals per serving'
                         inputMode='numeric'
                     />
-                    <Button title='submit' onPress={() => modifyPreset()} />
+                    <Button title={presetMealId ? 'Submit' : 'Add'} onPress={() => modifyPreset()} />
                 </View>
                 {error && <Text style={styles.errorText}>{error}</Text>}
             </View>

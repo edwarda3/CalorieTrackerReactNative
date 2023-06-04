@@ -24,6 +24,8 @@ function getDefaultItemPageParams(): DayPageParams {
 export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
     const options: ItemPageParams = _.defaults(params as any, getDefaultItemPageParams());
+    const yearMonthKey = options.dateString.slice(0, 7);
+    const dayKey = options.dateString.slice(8, 10);
     const [availablePresets, setAvailablePresets] = useState<MealPreset[]>([]);
     const [canSavePreset, setCanSavePreset] = useState<boolean>(false);
     const [fetched, setFetched] = useState<boolean>(false);
@@ -38,25 +40,35 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const [status, setStatus] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
-    const validateEntry = (): string[] => {
+    const validateEntry = async (): Promise<string[]> => {
         const validationErrors: string[] = [];
         if (_.isEmpty(name)) validationErrors.push('Entry must have a name.');
         if (_.isEmpty(time)) validationErrors.push('Entry must have a time.');
         const servings = Number(servingsStr);
         if (isNaN(servings) || servings <= 0) validationErrors.push('Servings must be a positive number.');
         if (kcalPer <= 0) validationErrors.push('Entry must have a positive kcal value.');
+        try {
+            const monthData = await DatabaseHandler.getInstance().getData(yearMonthKey);
+            const dayData = monthData[dayKey];
+            const existingMealWithSameNameAndTime = _.find(dayData, (meal) => (meal.name === name && meal.time === meal.time));
+            if (existingMealWithSameNameAndTime) {
+                validationErrors.push(`${name} at ${time} already exists. Modify that entry instead.`);
+            }
+        } catch (err) {
+            console.log(`Could not get existing day data to validate meal entry.`);
+        }
         return validationErrors;
     }
 
     const submitEntry = async (deleting = false) => {
         const servings = Number(servingsStr);
-        const validationResult = validateEntry();
-        setShowSuggestions(false);
+        const validationResult = await validateEntry();
         if (!_.isEmpty(validationResult)) {
             setErrors(validationResult);
         } else {
             setErrors([]);
             setSubmitting(true);
+            setShowSuggestions(false);
             await DatabaseHandler.getInstance().modifyEntry(
                 options.dateString,
                 options.itemName ?? name,
@@ -101,18 +113,19 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
 
             DatabaseHandler.getInstance().getPresets().then(presets => setAvailablePresets(presets));
 
+            // on first load, if we have a name/time passed, we need to retrieve the value from the database.
+            // If adding a new entry, the itemName/itemTime are nullish.
             if (!fetched && options.itemName && options.itemTime) {
-                const key = options.dateString.slice(0, 7);
-                const day = options.dateString.slice(8, 10);
-                DatabaseHandler.getInstance().getData(key).then(monthData => {
+                DatabaseHandler.getInstance().getData(yearMonthKey).then(monthData => {
                     setFetched(true);
-                    const meal = (monthData[day] ?? []).find((meal) => meal.name === options.itemName && meal.time === options.itemTime);
+                    const meal = (monthData[dayKey] ?? []).find((meal) => meal.name === options.itemName && meal.time === options.itemTime);
                     console.log(JSON.stringify(meal));
                     if (meal) {
                         setName(meal.name);
                         setTime(meal.time);
                         setServingsStr(meal.servings.toString());
                         setKcalPer(meal.kcalPerServing);
+                        setShowSuggestions(false);
                     }
                 }).catch(() => setFetched(true));
             }
@@ -149,10 +162,20 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                                 setName(text);
                                 setCanSavePreset(true);
                             }}
-                            clearButtonMode='always'
+                            clearButtonMode='while-editing'
                             value={name}
                             placeholder='Name'
                             placeholderTextColor='grey'
+                            /**
+                             * While I want to have setShowSuggestions(false) with onBlur, the blur event doesn't propogate
+                             * its event down to the page nodes, namely pressable. This is because during focus, the only
+                             * detectable input is in the focus element (TextInput) itself. Any other press is made to be handled
+                             * with a Keyboard.dismiss on mobile. Therefore, we will close the suggestions section on:
+                             * 1. selection of a suggestion
+                             * 1. focus of servings or kcal text inputs
+                             * 1. pressing add button
+                             * 1. pressing save preset button (which also disables the preset button until it's re-edited)
+                             */
                             onFocus={() => setShowSuggestions(true)}
                         />
                     </View>
@@ -166,7 +189,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                                         setCanSavePreset(false);
                                         setShowSuggestions(false);
                                     }}>
-                                        <Text style={bespokeStyle('label', { color: '#777' })}>{preset.name} ({preset.kcalPerServing}kcal)</Text>
+                                        <Text style={bespokeStyle('label', { color: '#777' })}>{_.startCase(preset.name)} ({preset.kcalPerServing}kcal)</Text>
                                     </Pressable>
                                 ))
                             }
