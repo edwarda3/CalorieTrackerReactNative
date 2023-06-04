@@ -20,6 +20,7 @@ function getDefaultItemPageParams(): DayPageParams {
         ...getDefaultDayPageParams()
     }
 }
+
 export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
     const options: ItemPageParams = _.defaults(params as any, getDefaultItemPageParams());
@@ -30,17 +31,29 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const hours = new Date().getHours().toString().padStart(2, '0');
     const minutes = new Date().getMinutes().toString().padStart(2, '0');
     const [time, setTime] = useState<string>(`${hours}:${minutes}`);
-    const [servings, setServings] = useState<number>(1);
+    const [servingsStr, setServingsStr] = useState<string>('1');
     const [kcalPer, setKcalPer] = useState<number>(0);
-    const [error, setError] = useState<string | null>(null);
+    const [errors, setErrors] = useState<string[]>([]);
     const [status, setStatus] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
+    const validateEntry = (): string[] => {
+        const validationErrors: string[] = [];
+        if (_.isEmpty(name)) validationErrors.push('Entry must have a name.');
+        if (_.isEmpty(time)) validationErrors.push('Entry must have a time.');
+        const servings = Number(servingsStr);
+        if (isNaN(servings) || servings <= 0) validationErrors.push('Servings must be a positive number.');
+        if (kcalPer <= 0) validationErrors.push('Entry must have a positive kcal value.');
+        return validationErrors;
+    }
+
     const submitEntry = async (deleting = false) => {
-        if (_.isEmpty(name) || _.isEmpty(time) || !servings || !kcalPer) {
-            setError('All Entries are required');
+        const servings = Number(servingsStr);
+        const validationResult = validateEntry();
+        if (!_.isEmpty(validationResult)) {
+            setErrors(validationResult);
         } else {
-            setError(null);
+            setErrors([]);
             setSubmitting(true);
             await DatabaseHandler.getInstance().modifyEntry(
                 options.dateString,
@@ -61,10 +74,10 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const savePreset = async () => {
         setStatus(null);
         if (_.isEmpty(name) || !kcalPer) {
-            setError('Must provide name and kcal per to save a preset');
+            setErrors(['Must provide name and kcal per to save a preset']);
             return;
         }
-        setError(null);
+        setErrors([]);
         const presets = await DatabaseHandler.getInstance().getPresets();
         presets.push({
             id: Date.now().toString(),
@@ -95,7 +108,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     if (meal) {
                         setName(meal.name);
                         setTime(meal.time);
-                        setServings(meal.servings);
+                        setServingsStr(meal.servings.toString());
                         setKcalPer(meal.kcalPerServing);
                     }
                 }).catch(() => setFetched(true));
@@ -153,14 +166,15 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     />
                 </View>
                 <View style={styles.formField}>
-                    <Text style={styles.label}>Servings</Text>
+                    <Text style={styles.label}>Servings Test</Text>
                     <TextInput
                         style={styles.input}
-                        onChangeText={(text) => setServings(Number(text))}
-                        value={servings.toString()}
+                        onChangeText={(text) => setServingsStr(text)}
+                        value={servingsStr}
                         placeholder='Servings'
                         placeholderTextColor='grey'
-                        inputMode='numeric'
+                        inputMode='decimal'
+                        keyboardType='decimal-pad'
                     />
                 </View>
                 <View style={styles.formField}>
@@ -178,10 +192,10 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     />
                 </View>
                 <View style={styles.formField}>
-                    <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * servings}</Text>
+                    <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
                     <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
                 </View>
-                {error && <Text style={styles.errorText}>{error}</Text>}
+                {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
                 {status && <Text style={styles.statusText}>{status}</Text>}
             </View>
         </SafeAreaView>
