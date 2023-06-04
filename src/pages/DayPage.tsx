@@ -23,7 +23,7 @@ export function getTotalCaloriesInADay(mealData: MealData[]): number {
     return _.reduce(mealData.filter((meal) => !!meal), (totalKcal, meal) => totalKcal += (meal.kcalPerServing * meal.servings), 0);
 }
 
-function sortEntries(meals: MealData[]): MealData[] {
+export function sortEntries(meals: MealData[]): MealData[] {
     return meals.sort((a, b) => {
         const timeA = a.time.split(':');
         const timeB = b.time.split(':');

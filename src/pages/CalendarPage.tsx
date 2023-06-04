@@ -27,16 +27,26 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
     const [currentYearMonth, setCurrentYearMonth] = useState<string>(getYearMonthIndex(new Date()))
     const [showingLegend, setShowingLegend] = useState<boolean>(false);
 
-    const fetchNewEntryForDatabase = async (key: string) => {
-        if (database[key]) {
-            return;
-        } else {
-            const monthData = await DatabaseHandler.getInstance().getData(key)
-            setDatabase({
-                ...database,
-                [key]: monthData
-            });
-        }
+    // Gets the data for the month and the prev and future months.
+    const refreshDatabaseForMonth = async (ymKey: string) => {
+        const year = ymKey.slice(0, 4);
+        const month = ymKey.slice(5, 7);
+        const prevMonth = Number(month) - 1 <= 0 ?
+            `${(Number(year)-1).toString().padStart(4, '0')}-12` :
+            `${year}-${(Number(month)-1).toString().padStart(2, '0')}`;
+        const futureMonth = Number(month) + 1 > 12 ?
+            `${(Number(year)+1).toString().padStart(4, '0')}-01` :
+            `${year}-${(Number(month)+1).toString().padStart(2, '0')}`;
+        console.log(`Fetching months: ${prevMonth}, ${ymKey}, ${futureMonth}`);
+        const monthData = await DatabaseHandler.getInstance().getData(ymKey)
+        const prevMonthData = await DatabaseHandler.getInstance().getData(prevMonth)
+        const futureMonthData = await DatabaseHandler.getInstance().getData(futureMonth)
+        setDatabase({
+            ...database,
+            [ymKey]: monthData,
+            [prevMonth]: prevMonthData,
+            [futureMonth]: futureMonthData,
+        });
     }
 
     useEffect(() => {
@@ -44,8 +54,11 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
             title: 'Calendar',
             headerRight: () => <Button title='Today' onPress={() => (navigation.navigate(NavigationPages.DAY))} />
         });
-        fetchNewEntryForDatabase(currentYearMonth);
     });
+
+    useFocusEffect(useCallback(() => {
+        refreshDatabaseForMonth(currentYearMonth);
+    }, []));
 
     const markedDates: MarkedDates = {};
     _.forOwn(database, (monthData, yearMonthKey) => {
@@ -67,7 +80,7 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                 onDayPress={(day) => navigation.navigate(NavigationPages.DAY, { dateString: day.dateString })}
                 onMonthChange={(day) => {
                     const key = getYearMonthIndex(new Date(day.dateString));
-                    fetchNewEntryForDatabase(key);
+                    refreshDatabaseForMonth(key);
                     setCurrentYearMonth(key);
                 }}
                 markingType='period'

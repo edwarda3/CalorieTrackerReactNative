@@ -47,15 +47,19 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         const servings = Number(servingsStr);
         if (isNaN(servings) || servings <= 0) validationErrors.push('Servings must be a positive number.');
         if (kcalPer <= 0) validationErrors.push('Entry must have a positive kcal value.');
-        try {
-            const monthData = await DatabaseHandler.getInstance().getData(yearMonthKey);
-            const dayData = monthData[dayKey];
-            const existingMealWithSameNameAndTime = _.find(dayData, (meal) => (meal.name === name && meal.time === meal.time));
-            if (existingMealWithSameNameAndTime) {
-                validationErrors.push(`${name} at ${time} already exists. Modify that entry instead.`);
+
+        // If the name or time changed, detect duplicates. Otherwise, it's an edit so we don't need to.
+        if (options.itemName !== name || options.itemTime !== time) {
+            try {
+                const monthData = await DatabaseHandler.getInstance().getData(yearMonthKey);
+                const dayData = monthData[dayKey];
+                const existingMealWithSameNameAndTime = _.find(dayData, (meal) => (meal.name === name && meal.time === meal.time));
+                if (existingMealWithSameNameAndTime) {
+                    validationErrors.push(`${name} at ${time} already exists. Modify that entry instead.`);
+                }
+            } catch (err) {
+                console.log(`Could not get existing day data to validate meal entry.`);
             }
-        } catch (err) {
-            console.log(`Could not get existing day data to validate meal entry.`);
         }
         return validationErrors;
     }

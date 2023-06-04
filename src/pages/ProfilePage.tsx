@@ -1,10 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, SafeAreaView, ScrollView, Share, StyleSheet, Text, TextInput, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Alert, Button, SafeAreaView, ScrollView, Share, Text, View } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
-import { DayPageParams, getDefaultDayPageParams } from './DayPage';
 import _ from 'lodash';
-import { DatabaseHandler } from '../data/database';
+import { DatabaseHandler, mergeDataStores, validateJsonStringAsDatastore } from '../data/database';
 import { DataStore, MealPreset, MonthData } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
 import { SelectList } from 'react-native-dropdown-select-list';
@@ -21,7 +19,13 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [inspectMonth, setInspectMonth] = useState<string>(defaultInspectionMonth);
 
     const refresh = async () => {
-        setDatastore(await DatabaseHandler.getInstance().getAllKnownData());
+        try {
+            const dataStore = await DatabaseHandler.getInstance().getAllKnownData();
+            validateJsonStringAsDatastore(JSON.stringify(dataStore));
+            setDatastore(dataStore);
+        } catch (err) {
+            setError(`Saved Datastore is invalid. Please import a new data store.`);
+        }
     }
 
     useFocusEffect(
@@ -31,26 +35,64 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
         }, [])
     );
 
+    const importAsOverride = async (newDataStore: DataStore) => {
+        await DatabaseHandler.getInstance().importJsonFile(newDataStore);
+        setDatastore(newDataStore);
+        setStatus(`Successfully imported ${Object.keys(newDataStore.database).length} months and ${newDataStore.presets.length} presets`);
+    }
+
+    const importAsMerge = async (existingDataStore: DataStore, newDataStore: DataStore, prefer: 'existing'|'imported') => {
+        const merged = mergeDataStores({
+            preferredDataStore: prefer === 'existing' ? existingDataStore : newDataStore,
+            mergingDataStore: prefer === 'existing' ? newDataStore : existingDataStore,
+        });
+        await DatabaseHandler.getInstance().importJsonFile(merged);
+        setDatastore(merged);
+        setStatus(`Successfully merged and imported ${Object.keys(merged.database).length} months and ${merged.presets.length} presets`);
+    }
+
     const importFile = async () => {
         setError(null);
         setStatus(null);
         try {
             const file = await pickSingle({
                 mode: 'import',
-                // type: ['text/plain', 'application/json']
             });
             const resultStr = await readFile(file.uri);
-            const imported = JSON.parse(resultStr) as DataStore;
-            if (imported.database && imported.presets) {
-                await DatabaseHandler.getInstance().importJsonFile(imported);
-                setDatastore(imported);
-                setStatus(`Successfully imported ${Object.keys(imported.database).length} months and ${imported.presets.length} presets`);
+            const imported = validateJsonStringAsDatastore(resultStr);
+            if (dataStore) {
+                Alert.alert(
+                    'Import options',
+                    `You currently have an existing data store with ${Object.keys(dataStore.database).length} months and ${dataStore.presets.length} presets. \
+                    Do you want to replace this with the new datastore with ${Object.keys(imported.database).length} months and ${imported.presets.length} presets or merge?`,
+                    [
+                        {
+                            text: 'Merge, preferring existing',
+                            onPress: () => importAsMerge(dataStore, imported, 'existing'),
+                            style: 'default'
+                        },
+                        {
+                            text: 'Merge, preferring imported',
+                            onPress: () => importAsMerge(dataStore, imported, 'imported'),
+                            style: 'default'
+                        },
+                        {
+                            text: 'Replace',
+                            onPress: () => importAsOverride(imported),
+                            style: 'destructive'
+                        },
+                        {
+                            text: 'Cancel',
+                            onPress: () => {},
+                            style: 'cancel'
+                        },
+                    ]
+                );
             } else {
-                throw new Error(`imported file did not have 'database' and 'presets' properties`);
+                importAsOverride(imported);
             }
         } catch (err) {
-            console.error(`Failed to import file.`, err);
-            setError(`Failed to import data store.`)
+            setError(`Failed to import data store. ${(err as Error).message}`)
         }
     }
 
