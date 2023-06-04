@@ -7,8 +7,6 @@ import _ from 'lodash';
 import { DatabaseHandler } from '../data/database';
 import { MealPreset } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
-import { SelectList } from 'react-native-dropdown-select-list';
-import { AutocompleteDropdownContextProvider, AutocompleteDropdown } from 'react-native-autocomplete-dropdown'
 import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
 
@@ -123,96 +121,94 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
 
     return (
         <SafeAreaView>
-            <AutocompleteDropdownContextProvider>
-                <View style={{ padding: 10, flexDirection: 'column' }}>
-                    <View style={styles.formField}>
-                        <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>
-                            <Text style={styles.label}>Time</Text>
-                            <DateTimePicker
-                                onChange={({ type }, date) => {
-                                    if (type === 'set') {
-                                        const hours = String(date?.getHours()).padStart(2, '0');
-                                        const minutes = String(date?.getMinutes()).padStart(2, '0');
-                                        setTime(`${hours}:${minutes}`)
-                                    }
-                                }}
-                                value={new Date(`${options.dateString} ${time}`)}
-                                mode='time'
-                                locale='en'
-                            />
-                        </View>
-                        <Button title='Save as preset' onPress={savePreset} disabled={!canSavePreset || !name || !kcalPer} />
-                    </View>
-                    <View >
-                        <View style={styles.formField}>
-                            <Text style={styles.label}>Name</Text>
-                            <TextInput
-                                style={styles.input}
-                                onChangeText={(text) => {
-                                    setName(text);
-                                    setCanSavePreset(true);
-                                }}
-                                clearButtonMode='always'
-                                value={name}
-                                placeholder='Name'
-                                placeholderTextColor='grey'
-                                onFocus={() => setShowSuggestions(true)}
-                            />
-                        </View>
-                        <Collapsible collapsed={!showSuggestions} style={{ padding: 5 }}>
-                            <ScrollView style={{ maxHeight: 200 }}>
-                                {_.map(availablePresets.filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase())) ?? [],
-                                    (preset) => (
-                                        <Pressable key={preset.id} style={{paddingBottom: 10}} onPress={() => {
-                                            setName(preset.name);
-                                            setKcalPer(preset.kcalPerServing);
-                                            setCanSavePreset(false);
-                                            setShowSuggestions(false);
-                                        }}>
-                                            <Text style={bespokeStyle('label', {color:'#777'})}>{preset.name} ({preset.kcalPerServing}kcal)</Text>
-                                        </Pressable>
-                                    ))
+            <View style={{ padding: 10, flexDirection: 'column' }}>
+                <View style={styles.formField}>
+                    <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>
+                        <Text style={styles.label}>Time</Text>
+                        <DateTimePicker
+                            onChange={({ type }, date) => {
+                                if (type === 'set') {
+                                    const hours = String(date?.getHours()).padStart(2, '0');
+                                    const minutes = String(date?.getMinutes()).padStart(2, '0');
+                                    setTime(`${hours}:${minutes}`)
                                 }
-
-                            </ScrollView>
-                        </Collapsible>
-                    </View>
-                    <View style={styles.formField}>
-                        <Text style={styles.label}>Servings Test</Text>
-                        <TextInput
-                            style={styles.input}
-                            onChangeText={(text) => setServingsStr(text)}
-                            value={servingsStr}
-                            onFocus={() => setShowSuggestions(false)}
-                            placeholder='Servings'
-                            placeholderTextColor='grey'
-                            inputMode='decimal'
-                            keyboardType='decimal-pad'
+                            }}
+                            value={new Date(`${options.dateString} ${time}`)}
+                            mode='time'
+                            locale='en'
                         />
                     </View>
+                    <Button title='Save as preset' onPress={savePreset} disabled={!canSavePreset || !name || !kcalPer} />
+                </View>
+                <View >
                     <View style={styles.formField}>
-                        <Text style={styles.label}>Kcal/Serving</Text>
+                        <Text style={styles.label}>Name</Text>
                         <TextInput
                             style={styles.input}
                             onChangeText={(text) => {
-                                setKcalPer(Number(text));
+                                setName(text);
                                 setCanSavePreset(true);
                             }}
-                            value={kcalPer.toString()}
-                            onFocus={() => setShowSuggestions(false)}
-                            placeholder='Kcals per serving'
+                            clearButtonMode='always'
+                            value={name}
+                            placeholder='Name'
                             placeholderTextColor='grey'
-                            inputMode='numeric'
+                            onFocus={() => setShowSuggestions(true)}
                         />
                     </View>
-                    <View style={styles.formField}>
-                        <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
-                        <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
-                    </View>
-                    {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
-                    {status && <Text style={styles.statusText}>{status}</Text>}
+                    <Collapsible collapsed={!showSuggestions} style={{ padding: 5 }}>
+                        <ScrollView style={{ maxHeight: 200 }}>
+                            {_.map(availablePresets.filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase())) ?? [],
+                                (preset) => (
+                                    <Pressable key={preset.id} style={{ paddingBottom: 10 }} onPress={() => {
+                                        setName(preset.name);
+                                        setKcalPer(preset.kcalPerServing);
+                                        setCanSavePreset(false);
+                                        setShowSuggestions(false);
+                                    }}>
+                                        <Text style={bespokeStyle('label', { color: '#777' })}>{preset.name} ({preset.kcalPerServing}kcal)</Text>
+                                    </Pressable>
+                                ))
+                            }
+
+                        </ScrollView>
+                    </Collapsible>
                 </View>
-            </AutocompleteDropdownContextProvider>
+                <View style={styles.formField}>
+                    <Text style={styles.label}>Servings Test</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={(text) => setServingsStr(text)}
+                        value={servingsStr}
+                        onFocus={() => setShowSuggestions(false)}
+                        placeholder='Servings'
+                        placeholderTextColor='grey'
+                        inputMode='decimal'
+                        keyboardType='decimal-pad'
+                    />
+                </View>
+                <View style={styles.formField}>
+                    <Text style={styles.label}>Kcal/Serving</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={(text) => {
+                            setKcalPer(Number(text));
+                            setCanSavePreset(true);
+                        }}
+                        value={kcalPer.toString()}
+                        onFocus={() => setShowSuggestions(false)}
+                        placeholder='Kcals per serving'
+                        placeholderTextColor='grey'
+                        inputMode='numeric'
+                    />
+                </View>
+                <View style={styles.formField}>
+                    <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
+                    <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
+                </View>
+                {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
+                {status && <Text style={styles.statusText}>{status}</Text>}
+            </View>
         </SafeAreaView>
     );
 }
