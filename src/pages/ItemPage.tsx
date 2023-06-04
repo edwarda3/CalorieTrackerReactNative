@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NavigatedScreenProps } from '../types/Navigation';
 import { DayPageParams, getDefaultDayPageParams } from './DayPage';
@@ -8,7 +8,9 @@ import { DatabaseHandler } from '../data/database';
 import { MealPreset } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
 import { SelectList } from 'react-native-dropdown-select-list';
-import { styles } from '../styles/Styles';
+import { AutocompleteDropdownContextProvider, AutocompleteDropdown } from 'react-native-autocomplete-dropdown'
+import { bespokeStyle, styles } from '../styles/Styles';
+import Collapsible from 'react-native-collapsible';
 
 export interface ItemPageParams extends DayPageParams {
     itemName?: string;
@@ -28,6 +30,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const [canSavePreset, setCanSavePreset] = useState<boolean>(false);
     const [fetched, setFetched] = useState<boolean>(false);
     const [name, setName] = useState<string>('');
+    const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
     const hours = new Date().getHours().toString().padStart(2, '0');
     const minutes = new Date().getMinutes().toString().padStart(2, '0');
     const [time, setTime] = useState<string>(`${hours}:${minutes}`);
@@ -50,6 +53,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const submitEntry = async (deleting = false) => {
         const servings = Number(servingsStr);
         const validationResult = validateEntry();
+        setShowSuggestions(false);
         if (!_.isEmpty(validationResult)) {
             setErrors(validationResult);
         } else {
@@ -73,6 +77,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
 
     const savePreset = async () => {
         setStatus(null);
+        setShowSuggestions(false);
         if (_.isEmpty(name) || !kcalPer) {
             setErrors(['Must provide name and kcal per to save a preset']);
             return;
@@ -118,86 +123,96 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
 
     return (
         <SafeAreaView>
-            <View style={{ padding: 10, flexDirection: 'column' }}>
-                <View style={styles.formField}>
-                    <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>
-                        <Text style={styles.label}>Time</Text>
-                        <DateTimePicker
-                            onChange={({ type }, date) => {
-                                if (type === 'set') {
-                                    const hours = String(date?.getHours()).padStart(2, '0');
-                                    const minutes = String(date?.getMinutes()).padStart(2, '0');
-                                    setTime(`${hours}:${minutes}`)
+            <AutocompleteDropdownContextProvider>
+                <View style={{ padding: 10, flexDirection: 'column' }}>
+                    <View style={styles.formField}>
+                        <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>
+                            <Text style={styles.label}>Time</Text>
+                            <DateTimePicker
+                                onChange={({ type }, date) => {
+                                    if (type === 'set') {
+                                        const hours = String(date?.getHours()).padStart(2, '0');
+                                        const minutes = String(date?.getMinutes()).padStart(2, '0');
+                                        setTime(`${hours}:${minutes}`)
+                                    }
+                                }}
+                                value={new Date(`${options.dateString} ${time}`)}
+                                mode='time'
+                                locale='en'
+                            />
+                        </View>
+                        <Button title='Save as preset' onPress={savePreset} disabled={!canSavePreset || !name || !kcalPer} />
+                    </View>
+                    <View >
+                        <View style={styles.formField}>
+                            <Text style={styles.label}>Name</Text>
+                            <TextInput
+                                style={styles.input}
+                                onChangeText={(text) => {
+                                    setName(text);
+                                    setCanSavePreset(true);
+                                }}
+                                clearButtonMode='always'
+                                value={name}
+                                placeholder='Name'
+                                placeholderTextColor='grey'
+                                onFocus={() => setShowSuggestions(true)}
+                            />
+                        </View>
+                        <Collapsible collapsed={!showSuggestions} style={{ padding: 5 }}>
+                            <ScrollView style={{ maxHeight: 200 }}>
+                                {_.map(availablePresets.filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase())) ?? [],
+                                    (preset) => (
+                                        <Pressable key={preset.id} style={{paddingBottom: 10}} onPress={() => {
+                                            setName(preset.name);
+                                            setKcalPer(preset.kcalPerServing);
+                                            setCanSavePreset(false);
+                                            setShowSuggestions(false);
+                                        }}>
+                                            <Text style={bespokeStyle('label', {color:'#777'})}>{preset.name} ({preset.kcalPerServing}kcal)</Text>
+                                        </Pressable>
+                                    ))
                                 }
-                            }}
-                            value={new Date(`${options.dateString} ${time}`)}
-                            mode='time'
-                            locale='en'
+
+                            </ScrollView>
+                        </Collapsible>
+                    </View>
+                    <View style={styles.formField}>
+                        <Text style={styles.label}>Servings Test</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={(text) => setServingsStr(text)}
+                            value={servingsStr}
+                            onFocus={() => setShowSuggestions(false)}
+                            placeholder='Servings'
+                            placeholderTextColor='grey'
+                            inputMode='decimal'
+                            keyboardType='decimal-pad'
                         />
                     </View>
-                    <Button title='Save as preset' onPress={savePreset} disabled={!canSavePreset || !name || !kcalPer} />
+                    <View style={styles.formField}>
+                        <Text style={styles.label}>Kcal/Serving</Text>
+                        <TextInput
+                            style={styles.input}
+                            onChangeText={(text) => {
+                                setKcalPer(Number(text));
+                                setCanSavePreset(true);
+                            }}
+                            value={kcalPer.toString()}
+                            onFocus={() => setShowSuggestions(false)}
+                            placeholder='Kcals per serving'
+                            placeholderTextColor='grey'
+                            inputMode='numeric'
+                        />
+                    </View>
+                    <View style={styles.formField}>
+                        <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
+                        <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
+                    </View>
+                    {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
+                    {status && <Text style={styles.statusText}>{status}</Text>}
                 </View>
-                <SelectList
-                    boxStyles={{ margin: 20 }}
-                    data={_.map(availablePresets ?? [], (preset) => ({ key: preset.id, value: `${preset.name} (${preset.kcalPerServing})` }))}
-                    save='key'
-                    placeholder='Choose Preset'
-                    setSelected={(key: string) => {
-                        const preset = availablePresets.find(preset => preset.id === key);
-                        if (preset) {
-                            setName(preset.name);
-                            setKcalPer(preset.kcalPerServing);
-                            setCanSavePreset(false);
-                        }
-                    }}
-                />
-                <View style={styles.formField}>
-                    <Text style={styles.label}>Name</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => {
-                            setName(text);
-                            setCanSavePreset(true);
-                        }}
-                        value={name}
-                        placeholder='Name'
-                        placeholderTextColor='grey'
-                        autoFocus={true}
-                    />
-                </View>
-                <View style={styles.formField}>
-                    <Text style={styles.label}>Servings Test</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => setServingsStr(text)}
-                        value={servingsStr}
-                        placeholder='Servings'
-                        placeholderTextColor='grey'
-                        inputMode='decimal'
-                        keyboardType='decimal-pad'
-                    />
-                </View>
-                <View style={styles.formField}>
-                    <Text style={styles.label}>Kcal/Serving</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => {
-                            setKcalPer(Number(text));
-                            setCanSavePreset(true);
-                        }}
-                        value={kcalPer.toString()}
-                        placeholder='Kcals per serving'
-                        placeholderTextColor='grey'
-                        inputMode='numeric'
-                    />
-                </View>
-                <View style={styles.formField}>
-                    <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
-                    <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
-                </View>
-                {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
-                {status && <Text style={styles.statusText}>{status}</Text>}
-            </View>
+            </AutocompleteDropdownContextProvider>
         </SafeAreaView>
     );
 }
