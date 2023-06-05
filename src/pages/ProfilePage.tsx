@@ -60,7 +60,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
             });
             const resultStr = await readFile(file.uri);
             const imported = validateJsonStringAsDatastore(resultStr);
-            if (dataStore) {
+            if (dataStore && (!_.isEmpty(dataStore.database) || !_.isEmpty(dataStore.presets))) {
                 Alert.alert(
                     'Import options',
                     `You currently have an existing data store with ${Object.keys(dataStore.database).length} months and ${dataStore.presets.length} presets. \
