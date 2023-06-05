@@ -53,7 +53,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
             try {
                 const monthData = await DatabaseHandler.getInstance().getData(yearMonthKey);
                 const dayData = monthData[dayKey];
-                const existingMealWithSameNameAndTime = _.find(dayData, (meal) => (meal.name === name && meal.time === meal.time));
+                const existingMealWithSameNameAndTime = _.find(dayData, (meal) => (meal.name === name && meal.time === time));
                 if (existingMealWithSameNameAndTime) {
                     validationErrors.push(`${name} at ${time} already exists. Modify that entry instead.`);
                 }

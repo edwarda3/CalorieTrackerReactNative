@@ -6,7 +6,7 @@ import { DatabaseHandler, mergeDataStores, validateJsonStringAsDatastore } from 
 import { DataStore, MealPreset, MonthData } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
 import { SelectList } from 'react-native-dropdown-select-list';
-import { pickSingle } from 'react-native-document-picker';
+import { isCancel, pickSingle } from 'react-native-document-picker';
 import { readFile } from 'react-native-fs';
 import { getYearMonthIndex } from '../types/Dates';
 import { styles } from '../styles/Styles';
@@ -92,7 +92,9 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                 importAsOverride(imported);
             }
         } catch (err) {
-            setError(`Failed to import data store. ${(err as Error).message}`)
+            if (!isCancel(err)) {
+                setError(`Failed to import data store. ${(err as Error).message}`)
+            }
         }
     }
 
