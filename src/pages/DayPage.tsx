@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Button, FlatList, Modal, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Button, FlatList, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
 import _ from 'lodash';
-import { getDateString, getDateStringParts, monthStrings } from '../types/Dates';
+import { getDateString } from '../types/Dates';
 import { MealData } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
-import { bespokeStyle, styles } from '../styles/Styles';
+import {  styles } from '../styles/Styles';
+import { sortMealsByTime } from '../data/processing';
 
 export interface DayPageParams {
     dateString: string;
@@ -23,25 +24,6 @@ export function getTotalCaloriesInADay(mealData: MealData[]): number {
     return _.reduce(mealData.filter((meal) => !!meal), (totalKcal, meal) => totalKcal += (meal.kcalPerServing * meal.servings), 0);
 }
 
-export function sortEntries(meals: MealData[]): MealData[] {
-    return meals.sort((a, b) => {
-        const timeA = a.time.split(':');
-        const timeB = b.time.split(':');
-
-        const hourA = parseInt(timeA[0]);
-        const hourB = parseInt(timeB[0]);
-
-        const minuteA = parseInt(timeA[1]);
-        const minuteB = parseInt(timeB[1]);
-
-        if (hourA !== hourB) {
-            return hourA - hourB;
-        } else {
-            return minuteA - minuteB;
-        }
-    });
-}
-
 export function DayPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
     const options: DayPageParams = _.defaults(params as any, getDefaultDayPageParams())
@@ -54,7 +36,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
         const key = options.dateString.slice(0, 7);
         const day = options.dateString.slice(8, 10);
         const monthData = await DatabaseHandler.getInstance().getData(key);
-        setMealData(sortEntries(monthData[day] ?? []));
+        setMealData(sortMealsByTime(monthData[day] ?? []));
         setRefreshing(false);
     }
 
