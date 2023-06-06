@@ -1,4 +1,11 @@
 import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
+import { HomePage } from '../pages/HomePage';
+import { CalendarPage } from '../pages/CalendarPage';
+import { DayPage } from '../pages/DayPage';
+import { ItemPage } from '../pages/ItemPage';
+import { PresetsPage } from '../pages/PresetsPage';
+import { ProfilePage } from '../pages/ProfilePage';
+import { SearchByMeal } from '../components/SearchByMeal';
 
 export enum NavigationPages {
     HOME='home',
@@ -26,4 +33,21 @@ export interface NavigationControls {
     push: NavFunction;
     goBack: () => void;
     setOptions: (options: NativeStackNavigationOptions | OptionsFunction) => void;
+}
+
+export interface PageDetail {
+    name: string;
+    title?: string;
+    component: (props: NavigatedScreenProps) => JSX.Element;
+    symbolName?: string;
+}
+
+export const pageDetails: Record<NavigationPages, PageDetail> = {
+    [NavigationPages.HOME]: { name: NavigationPages.HOME, title: 'Calorie Tracker', component: HomePage },
+    [NavigationPages.PROFILE]: { name: NavigationPages.PROFILE, title: 'Profile', symbolName: 'person.fill', component: ProfilePage },
+    [NavigationPages.SEARCH_BY_MEAL]: { name: NavigationPages.SEARCH_BY_MEAL, symbolName: 'magnifyingglass', title: 'Search by Meal', component: SearchByMeal },
+    [NavigationPages.CALENDAR]: { name: NavigationPages.CALENDAR, symbolName: 'calendar', component: CalendarPage },
+    [NavigationPages.DAY]: { name: NavigationPages.DAY, symbolName: 'note.text', component: DayPage },
+    [NavigationPages.ITEM]: { name: NavigationPages.ITEM, symbolName: 'plus.square', component: ItemPage },
+    [NavigationPages.PRESETS]: { name: NavigationPages.PRESETS, title: 'Presets', symbolName:'book.closed', component: PresetsPage },
 }
