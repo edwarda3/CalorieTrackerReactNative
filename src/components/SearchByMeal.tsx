@@ -25,12 +25,28 @@ interface DaySearchResult {
 
 const minimumNameSearchLength = 3;
 
+const filterNameByRegexIfValid = (regexFilter: string, kcalFilter: number, mealDataList: MealData[]): MealData[] => {
+    let regex: RegExp | null;
+    try {
+        regex = new RegExp(regexFilter.replace('*', '.*').trim(), 'i');
+    } catch (err) {
+        regex = null
+    }
+    return mealDataList.filter((mealData) => {
+        const nameMatches = !!regex ? regex.test(mealData.name) : mealData.name.toLowerCase().includes(regexFilter.toLowerCase());
+        const caloriesMeetMinumum = (mealData.kcalPerServing * mealData.servings) >= Number(kcalFilter);
+        return nameMatches && caloriesMeetMinumum;
+    });
+}
+
 export const SearchByMeal = (props: NavigatedScreenProps) => {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
     const [nameFilter, setNameFilter] = useState<string>('');
     const [totalKcalFilterStr, setTotalKcalFilterStr] = useState<string>('');
     const [showDateFilters, setShowDateFilters] = useState<boolean>(false);
-    const [minDate, setMinDate] = useState<Date>(new Date()); // TODO make this 1 month ago (use dayjs?)
+    const monthAgo = new Date();
+    monthAgo.setDate(monthAgo.getDate() - 30);
+    const [minDate, setMinDate] = useState<Date>(monthAgo); // TODO make this 1 month ago (use dayjs?)
     const [maxDate, setMaxDate] = useState<Date>(new Date());
 
     const refresh = async () => {
@@ -59,11 +75,8 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                 if (showDateFilters && (dateString < getDateString(minDate)) || dateString > getDateString(maxDate)) {
                     return;
                 }
-                const matchedEntriesInThatDay = dataStore.database[ymKey][dayKey].filter((mealData) => {
-                    const nameMatches = new RegExp(nameFilter.replace('*', '.*').trim(), 'i').test(mealData.name);
-                    const caloriesMeetMinumum = (mealData.kcalPerServing * mealData.servings) >= Number(totalKcalFilterStr);
-                    return nameMatches && caloriesMeetMinumum;
-                });
+                const minimumKcalFilter = isNaN(Number(totalKcalFilterStr)) ? 0 : Number(totalKcalFilterStr);
+                const matchedEntriesInThatDay = filterNameByRegexIfValid(nameFilter, minimumKcalFilter, dataStore.database[ymKey][dayKey]);
                 if (!_.isEmpty(matchedEntriesInThatDay)) {
                     const totalSum: number = dataStore.database[ymKey][dayKey].reduce((acc, current) => acc + (current.kcalPerServing * current.servings), 0);
                     searchResult.push({

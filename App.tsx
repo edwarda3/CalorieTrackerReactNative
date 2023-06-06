@@ -30,7 +30,7 @@ interface PageDetail {
 
 function App(): JSX.Element {
     const page = ({ name, title, component }: PageDetail) => (
-        <Stack.Screen name={name} options={{ title }} component={component} />
+        <Stack.Screen key={name} name={name} options={{ title }} component={component} />
     )
 
     return (
