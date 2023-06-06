@@ -30,6 +30,20 @@ export const rawStyles: Record<string, ViewStyle | TextStyle | ImageStyle> = {
     statusText: {
         color: 'navy',
         fontSize: 16
+    },
+    modalView: {
+        margin: 20,
+        borderRadius: 20,
+        padding: 35,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
     }
 };
 

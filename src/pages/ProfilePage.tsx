@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, SafeAreaView, ScrollView, Share, Text, View } from 'react-native';
+import { Alert, Button, Modal, SafeAreaView, ScrollView, Share, Text, View } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
 import { DatabaseHandler } from '../data/database';
@@ -11,6 +11,8 @@ import { isCancel, pickSingle } from 'react-native-document-picker';
 import { readFile } from 'react-native-fs';
 import { getYearMonthIndex } from '../types/Dates';
 import { styles } from '../styles/Styles';
+import { HorizontalLine } from '../components/Layout';
+import { SearchByMeal } from '../components/SearchByMeal';
 
 export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
@@ -18,6 +20,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [status, setStatus] = useState<string | null>(null);
     const defaultInspectionMonth = getYearMonthIndex(new Date());
     const [inspectMonth, setInspectMonth] = useState<string>(defaultInspectionMonth);
+    const [modal, setModal] = useState<null | 'searchbymeal'>(null);
 
     const refresh = async () => {
         try {
@@ -42,7 +45,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
         setStatus(`Successfully imported ${Object.keys(newDataStore.database).length} months and ${newDataStore.presets.length} presets`);
     }
 
-    const importAsMerge = async (existingDataStore: DataStore, newDataStore: DataStore, prefer: 'existing'|'imported') => {
+    const importAsMerge = async (existingDataStore: DataStore, newDataStore: DataStore, prefer: 'existing' | 'imported') => {
         const merged = mergeDataStores({
             preferredDataStore: prefer === 'existing' ? existingDataStore : newDataStore,
             mergingDataStore: prefer === 'existing' ? newDataStore : existingDataStore,
@@ -84,7 +87,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                         },
                         {
                             text: 'Cancel',
-                            onPress: () => {},
+                            onPress: () => { },
                             style: 'cancel'
                         },
                     ]
@@ -102,7 +105,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     return (
         <SafeAreaView>
             <View style={{ padding: 10, flexDirection: 'column' }}>
-                <Text>{Object.keys(dataStore?.database ?? {}).length} months tracked.</Text>
+                <Text style={{ alignSelf: 'center' }}>{Object.keys(dataStore?.database ?? {}).length} months tracked.</Text>
                 <Button title='Export data' onPress={() => {
                     Share.share({
                         message: JSON.stringify(dataStore),
@@ -111,6 +114,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                 <Button title='Import data' onPress={importFile} />
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 {status && <Text style={styles.statusText}>{status}</Text>}
+                <HorizontalLine marginVertical={10} />
                 <SelectList
                     data={_.map(Object.keys(dataStore?.database ?? {}).sort().reverse(), (yearMonth) => ({
                         key: yearMonth,
@@ -120,7 +124,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                     save='key'
                     setSelected={(key: string) => setInspectMonth(key)}
                 />
-                {(!dataStore || !dataStore?.database?.[inspectMonth]) ? 
+                {(!dataStore || !dataStore?.database?.[inspectMonth]) ?
                     <Text>No information for {inspectMonth}</Text> :
                     <YearMonthStats monthData={dataStore.database[inspectMonth]} />
                 }

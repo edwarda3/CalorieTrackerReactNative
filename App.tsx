@@ -16,10 +16,23 @@ import { NavigatedScreenProps, NavigationPages } from './src/types/Navigation';
 import _ from 'lodash';
 import { PresetsPage } from './src/pages/PresetsPage';
 import { ProfilePage } from './src/pages/ProfilePage';
+import { SearchByMeal } from './src/components/SearchByMeal';
+import { View } from 'react-native';
+import { HorizontalLine } from './src/components/Layout';
 
 const Stack = createNativeStackNavigator();
 
+interface PageDetail {
+    name: string;
+    title?: string;
+    component: () => JSX.Element;
+}
+
 function App(): JSX.Element {
+    const page = ({ name, title, component }: PageDetail) => (
+        <Stack.Screen name={name} options={{ title }} component={component} />
+    )
+
     return (
         <NavigationContainer>
             <Stack.Navigator initialRouteName='home' screenOptions={{
@@ -28,12 +41,17 @@ function App(): JSX.Element {
                 },
                 headerTintColor: '#fff',
             }}>
-                <Stack.Screen name={NavigationPages.HOME} options={{ title: 'Calorie Tracker' }} component={HomePage as any} />
-                <Stack.Screen name={NavigationPages.PROFILE} options={{ title: 'Profile' }} component={ProfilePage as any} />
-                <Stack.Screen name={NavigationPages.CALENDAR} component={CalendarPage as any} />
-                <Stack.Screen name={NavigationPages.DAY} component={DayPage as any} />
-                <Stack.Screen name={NavigationPages.ITEM} component={ItemPage as any} />
-                <Stack.Screen name={NavigationPages.PRESETS} component={PresetsPage as any} />
+                {
+                    ([
+                        { name: NavigationPages.HOME, title: 'Calorie Tracker', component: HomePage },
+                        { name: NavigationPages.PROFILE, title: 'Profile', component: ProfilePage },
+                        { name: NavigationPages.SEARCH_BY_MEAL, title: 'Search by Meal', component: SearchByMeal },
+                        { name: NavigationPages.CALENDAR, component: CalendarPage },
+                        { name: NavigationPages.DAY, component: DayPage },
+                        { name: NavigationPages.ITEM, component: ItemPage },
+                        { name: NavigationPages.PRESETS, title: 'Presets', component: PresetsPage },
+                    ] as PageDetail[]).map(page)
+                }
             </Stack.Navigator>
         </NavigationContainer>
     );

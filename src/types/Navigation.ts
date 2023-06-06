@@ -6,7 +6,8 @@ export enum NavigationPages {
     CALENDAR='calendar',
     DAY='day',
     ITEM='item',
-    PRESETS='presets'
+    PRESETS='presets',
+    SEARCH_BY_MEAL='search-by-meal',
 };
 
 type NavFunction = (routeName: string, params?: Record<string, any>) => void;
@@ -14,13 +15,15 @@ type NavFunction = (routeName: string, params?: Record<string, any>) => void;
 type OptionsFunction = (props: NavigatedScreenProps) => NativeStackNavigationOptions
 
 export interface NavigatedScreenProps {
-    navigation: {
-        navigate: NavFunction;
-        push: NavFunction;
-        goBack: () => void;
-        setOptions: (options: NativeStackNavigationOptions | OptionsFunction) => void
-    }
+    navigation: NavigationControls,
     route: {
         params: Record<string, any>;
     }
 };
+
+export interface NavigationControls {
+    navigate: NavFunction;
+    push: NavFunction;
+    goBack: () => void;
+    setOptions: (options: NativeStackNavigationOptions | OptionsFunction) => void;
+}

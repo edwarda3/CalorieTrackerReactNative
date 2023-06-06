@@ -9,6 +9,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
 import {  styles } from '../styles/Styles';
 import { sortMealsByTime } from '../data/processing';
+import { MealEntryListItem } from '../components/MealEntryListItem';
 
 export interface DayPageParams {
     dateString: string;
@@ -104,7 +105,28 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                     ...meal,
                     id: `${meal.time}-${meal.name}`,
                 }))}
-                renderItem={({ item }) => getItemView(item)}
+                renderItem={({ item }) => (
+                    <MealEntryListItem
+                        meal={item}
+                        actions={[
+                            { title: 'Edit', onPress: () => {
+                                props.navigation.navigate(NavigationPages.ITEM, {
+                                    ...options,
+                                    itemName: item.name,
+                                    itemTime: item.time,
+                                })
+                            } },
+                            { title: 'Delete', destructive: true, onPress: () => {
+                                DatabaseHandler.getInstance().modifyEntry(
+                                    options.dateString,
+                                    item.name,
+                                    item.time,
+                                    null
+                                ).then(refresh);
+                            } }
+                        ]}
+                    />
+                )}
                 keyExtractor={item => item.id}
                 refreshing={refreshing}
                 onRefresh={refresh}
