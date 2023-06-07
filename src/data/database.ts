@@ -42,6 +42,10 @@ export class DatabaseHandler {
         await this.setAppSettings(dataStore.settings);
     }
 
+    public getCachedData(): Database {
+        return this.cache;
+    }
+
     private async getDataFromAsyncStore(key: string): Promise<MonthData> {
         try {
             const value = await AsyncStorage.getItem(`${DatabaseHandler.prefix}/${key}`);
