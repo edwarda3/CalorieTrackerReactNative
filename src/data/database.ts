@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { DataStore, Database, MealData, MealPreset, MonthData } from "../types/Model";
+import { AppSettings, DataStore, Database, MealData, MealPreset, MonthData, getDefaultSettings } from "../types/Model";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class DatabaseHandler {
@@ -19,12 +19,13 @@ export class DatabaseHandler {
 
     public async getAllKnownData(): Promise<DataStore> {
         const keys = await AsyncStorage.getAllKeys();
-        const dataStore = {
+        const dataStore: DataStore = {
             database: {} as Database,
             presets: await this.getPresets(),
+            settings: await this.getAppSettings(),
         };
         for (const key of keys) {
-            if (!key.includes(DatabaseHandler.presetKey)) {
+            if (!(key.includes(DatabaseHandler.presetKey) || key.includes(DatabaseHandler.settingsKey))) {
                 const [_prefix, yearMonth] = key.split('/');
                 const data = await this.getData(yearMonth);
                 dataStore.database[yearMonth] = data;
@@ -37,7 +38,8 @@ export class DatabaseHandler {
         for (const key in dataStore.database) {
             await DatabaseHandler.getInstance().setData(key, dataStore.database[key]);
         }
-        await DatabaseHandler.getInstance().setPresets(dataStore.presets);
+        await this.setPresets(dataStore.presets);
+        await this.setAppSettings(dataStore.settings);
     }
 
     private async getDataFromAsyncStore(key: string): Promise<MonthData> {
@@ -104,6 +106,42 @@ export class DatabaseHandler {
             return
         } catch (err) {
             console.error(`Could not set value for presets.`);
+            return;
+        }
+    }
+
+    // To allow for easily adding new settings, return a partial object and merge it with a default object.
+    private async fetchAppSettingsFromAsyncStorage(): Promise<Partial<AppSettings>> {
+        try {
+            const value = await AsyncStorage.getItem(`${DatabaseHandler.prefix}/${DatabaseHandler.settingsKey}`);
+            return JSON.parse(value ?? '{}') as Partial<AppSettings>;
+        } catch (err) {
+            console.error(`Could not retrieve value for presets.`);
+            return {};
+        }
+    }
+
+    private static readonly settingsKey = 'SETTINGS';
+    private cachedSettings: AppSettings = getDefaultSettings();
+    public getAppSettingsBestEffortSync(): AppSettings {
+        return this.cachedSettings;
+    }
+
+    public async getAppSettings(): Promise<AppSettings> {
+        const previouslyStored = await this.fetchAppSettingsFromAsyncStorage();
+        const fullSettings = _.merge(getDefaultSettings(), previouslyStored) as AppSettings;
+        if (!_.isEqual(previouslyStored, fullSettings)) {
+            await this.setAppSettings(fullSettings);
+        }
+        return fullSettings;
+    }
+    public async setAppSettings(appSettings: AppSettings): Promise<void> {
+        try {
+            this.cachedSettings = appSettings;
+            await AsyncStorage.setItem(`${DatabaseHandler.prefix}/${DatabaseHandler.settingsKey}`, JSON.stringify(appSettings));
+            return
+        } catch (err) {
+            console.error(`Could not set settings.`);
             return;
         }
     }

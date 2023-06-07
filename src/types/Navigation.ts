@@ -6,15 +6,17 @@ import { ItemPage } from '../pages/ItemPage';
 import { PresetsPage } from '../pages/PresetsPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { SearchByMeal } from '../components/SearchByMeal';
+import { SettingsPage } from "../pages/SettingsPage";
 
 export enum NavigationPages {
-    HOME='home',
-    PROFILE='profile',
-    CALENDAR='calendar',
-    DAY='day',
-    ITEM='item',
-    PRESETS='presets',
-    SEARCH_BY_MEAL='search-by-meal',
+    HOME = 'home',
+    PROFILE = 'profile',
+    SETTINGS = 'settings',
+    CALENDAR = 'calendar',
+    DAY = 'day',
+    ITEM = 'item',
+    PRESETS = 'presets',
+    SEARCH_BY_MEAL = 'search-by-meal',
 };
 
 type NavFunction = (routeName: string, params?: Record<string, any>) => void;
@@ -43,11 +45,48 @@ export interface PageDetail {
 }
 
 export const pageDetails: Record<NavigationPages, PageDetail> = {
-    [NavigationPages.HOME]: { name: NavigationPages.HOME, title: 'Calorie Tracker', component: HomePage },
-    [NavigationPages.PROFILE]: { name: NavigationPages.PROFILE, title: 'Profile', symbolName: 'person.fill', component: ProfilePage },
-    [NavigationPages.SEARCH_BY_MEAL]: { name: NavigationPages.SEARCH_BY_MEAL, symbolName: 'magnifyingglass', title: 'Search by Meal', component: SearchByMeal },
-    [NavigationPages.CALENDAR]: { name: NavigationPages.CALENDAR, symbolName: 'calendar', component: CalendarPage },
-    [NavigationPages.DAY]: { name: NavigationPages.DAY, symbolName: 'note.text', component: DayPage },
-    [NavigationPages.ITEM]: { name: NavigationPages.ITEM, symbolName: 'plus.square', component: ItemPage },
-    [NavigationPages.PRESETS]: { name: NavigationPages.PRESETS, title: 'Presets', symbolName:'book.closed', component: PresetsPage },
+    [NavigationPages.HOME]: {
+        name: NavigationPages.HOME,
+        title: 'Calorie Tracker',
+        component: HomePage
+    },
+    [NavigationPages.PROFILE]: {
+        name: NavigationPages.PROFILE,
+        title: 'Profile',
+        symbolName: 'person.fill',
+        component: ProfilePage
+    },
+    [NavigationPages.SETTINGS]: {
+        name: NavigationPages.SETTINGS,
+        title: 'Settings',
+        symbolName: 'gearshape.fill',
+        component: SettingsPage
+    },
+    [NavigationPages.SEARCH_BY_MEAL]: {
+        name: NavigationPages.SEARCH_BY_MEAL,
+        symbolName: 'magnifyingglass',
+        title: 'Search by Meal',
+        component: SearchByMeal
+    },
+    [NavigationPages.CALENDAR]: {
+        name: NavigationPages.CALENDAR,
+        symbolName: 'calendar',
+        component: CalendarPage
+    },
+    [NavigationPages.DAY]: {
+        name: NavigationPages.DAY,
+        symbolName: 'note.text',
+        component: DayPage
+    },
+    [NavigationPages.ITEM]: {
+        name: NavigationPages.ITEM,
+        symbolName: 'plus.square',
+        component: ItemPage
+    },
+    [NavigationPages.PRESETS]: {
+        name: NavigationPages.PRESETS,
+        title: 'Presets',
+        symbolName: 'book.closed',
+        component: PresetsPage
+    },
 }

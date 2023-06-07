@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Button, Modal, SafeAreaView, ScrollView, Share, Text, View } from 'react-native';
-import { NavigatedScreenProps } from '../types/Navigation';
+import { Alert, Button, Modal, Pressable, SafeAreaView, ScrollView, Share, Text, View } from 'react-native';
+import { NavigatedScreenProps, NavigationPages, pageDetails } from '../types/Navigation';
 import _ from 'lodash';
 import { DatabaseHandler } from '../data/database';
 import { mergeDataStores, validateJsonStringAsDatastore } from '../data/processing';
@@ -13,6 +13,8 @@ import { getYearMonthIndex } from '../types/Dates';
 import { styles } from '../styles/Styles';
 import { HorizontalLine } from '../components/Layout';
 import { SearchByMeal } from '../components/SearchByMeal';
+import { SFSymbol } from 'react-native-sfsymbols';
+import { ExtensibleButton } from '../components/Buttons';
 
 export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
@@ -20,7 +22,6 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [status, setStatus] = useState<string | null>(null);
     const defaultInspectionMonth = getYearMonthIndex(new Date());
     const [inspectMonth, setInspectMonth] = useState<string>(defaultInspectionMonth);
-    const [modal, setModal] = useState<null | 'searchbymeal'>(null);
 
     const refresh = async () => {
         try {
@@ -34,6 +35,20 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
 
     useFocusEffect(
         useCallback(() => {
+            props.navigation.setOptions({
+                headerRight: () => (
+                    <ExtensibleButton
+                        title=''
+                        symbol={{
+                            name: pageDetails[NavigationPages.SETTINGS].symbolName,
+                            color: 'white',
+                            scale: 'medium',
+                            weight: 'thin',
+                        }}
+                        onPress={() => props.navigation.navigate(NavigationPages.SETTINGS)} 
+                    />
+                )
+            });
             refresh();
             return () => { };
         }, [])
@@ -103,7 +118,9 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     }
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{
+            flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
+        }}>
             <View style={{ padding: 10, flexDirection: 'column' }}>
                 <Text style={{ alignSelf: 'center' }}>{Object.keys(dataStore?.database ?? {}).length} months tracked.</Text>
                 <Button title='Export data' onPress={() => {

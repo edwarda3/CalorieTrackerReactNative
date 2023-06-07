@@ -1,5 +1,5 @@
-import { ButtonProps, Pressable, StyleProp, Text, TextProps, TextStyle, View } from 'react-native';
-import { SFSymbol } from 'react-native-sfsymbols';
+import { ButtonProps, ColorValue, Pressable, StyleProp, Text, TextProps, TextStyle, View } from 'react-native';
+import { SFSymbol, SymbolScale, SymbolWeight } from 'react-native-sfsymbols';
 
 const bigButtonStyle: StyleProp<TextStyle> = {
     fontSize: 32,
@@ -10,19 +10,26 @@ const bigButtonStyle: StyleProp<TextStyle> = {
 };
 
 export type ExtensibleButtonProps = ButtonProps & TextProps & {
-    symbol?: string;
+    symbol?: {
+        name?: string;
+        scale?: SymbolScale;
+        color?: ColorValue;
+        weight?: SymbolWeight;
+    }
 };
 
-export const BigButton = ({ onPress, title, symbol }: Pick<ExtensibleButtonProps, 'onPress' | 'title' | 'symbol'>) => <ExtensibleButton onPress={onPress} title={title} style={bigButtonStyle} symbol={symbol} />
+export const BigButton = ({ onPress, title, symbol }: Pick<ExtensibleButtonProps, 'onPress' | 'title' | 'symbol'>) => (
+    <ExtensibleButton onPress={onPress} title={title} style={bigButtonStyle} symbol={symbol} />
+);
 
 export const ExtensibleButton = ({ onPress, title, style, symbol }: ExtensibleButtonProps) => (
     <Pressable onPress={onPress}>
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            {symbol && <SFSymbol
-                name={symbol}
-                color={'black'}
-                weight="regular"
-                scale="large"
+            {symbol && symbol.name && <SFSymbol
+                name={symbol.name}
+                color={symbol.color ?? 'black'}
+                weight={symbol.weight ?? 'regular'}
+                scale={symbol.scale ?? "large"}
                 size={24}
                 resizeMode="center"
                 multicolor={false}

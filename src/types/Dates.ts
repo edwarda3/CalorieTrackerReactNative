@@ -1,3 +1,4 @@
+import { DatabaseHandler } from "../data/database";
 
 export const monthStrings = [
     'January',
@@ -52,7 +53,7 @@ export const formatToAmPm = (time: string) => {
     const formattedTime = date.toLocaleString(undefined, {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: true
+        hour12: DatabaseHandler.getInstance().getAppSettingsBestEffortSync().timeFormat === '12',
     });
 
     return formattedTime;

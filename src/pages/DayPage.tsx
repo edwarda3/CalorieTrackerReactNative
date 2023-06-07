@@ -55,45 +55,10 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
         }, [])
     );
 
-    const getItemView = (meal: MealData) => (
-        <ContextMenu
-            previewBackgroundColor='rgba(0,0,0,0)'
-            actions={[
-                { title: 'Edit' },
-                { title: 'Delete', destructive: true }
-            ]}
-            onPress={({ nativeEvent }) => {
-                if (nativeEvent.name === 'Edit') {
-                    props.navigation.navigate(NavigationPages.ITEM, {
-                        ...options,
-                        itemName: meal.name,
-                        itemTime: meal.time,
-                    });
-                } else if (nativeEvent.name === 'Delete') {
-                    DatabaseHandler.getInstance().modifyEntry(
-                        options.dateString,
-                        meal.name,
-                        meal.time,
-                        null
-                    ).then(refresh);
-                }
-            }}>
-            <View style={{ padding: 10, flexDirection: 'row', gap: 20, alignItems: 'center' }}>
-                <View style={{ flexDirection: 'column', flexGrow: 1, flexShrink: 1 }}>
-                    <Text style={styles.subLabel}>{meal.time}</Text>
-                    <Text style={styles.label}>{_.startCase(meal.name)}</Text>
-                </View>
-                <View style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
-                    <Text style={styles.subLabel}>{meal.servings} Serving(s)</Text>
-                    <Text style={styles.subLabel}>{meal.kcalPerServing} kcal/serving</Text>
-                </View>
-                <Text style={styles.label}>{meal.servings * meal.kcalPerServing}kcal</Text>
-            </View>
-        </ContextMenu>
-    )
-
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{
+            flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
+        }}>
             <View style={{ padding: 10, flexDirection: 'row', gap: 20 }}>
                 <Pressable style={{ flexGrow: 1 }} onPress={refresh}>
                     <Text style={styles.title}>Total Calories: {getTotalCaloriesInADay(mealData)}</Text>

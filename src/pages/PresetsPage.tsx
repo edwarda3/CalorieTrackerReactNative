@@ -127,13 +127,15 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                 </View>
                 {error && <Text style={styles.errorText}>{error}</Text>}
             </View>
-            <TextInput
-                style={styles.input}
-                onChangeText={(text) => setFilter(text)}
-                value={filter}
-                placeholder='Filter'
-                placeholderTextColor='grey'
-            />
+            <View>
+                <TextInput
+                    style={styles.input}
+                    onChangeText={(text) => setFilter(text)}
+                    value={filter}
+                    placeholder='Filter'
+                    placeholderTextColor='grey'
+                />
+            </View>
             <FlatList
                 data={presets.filter(preset => (!!preset && preset.name.toLowerCase().includes(filter.toLowerCase())))}
                 renderItem={({ item }) => getPresetView(item)}

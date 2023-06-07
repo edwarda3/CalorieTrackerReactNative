@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { FlatList, Keyboard, Modal, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, FlatList, Keyboard, Modal, Text, TextInput, View } from 'react-native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import { DataStore, Database, MealData } from '../types/Model';
 import _ from 'lodash';
@@ -111,7 +111,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     <Text style={styles.subLabel}>Day total: {daySearchResult.daySearchTotalKcal}kcal</Text>
                 </View>
                 {_.map(daySearchResult.dayResult, (mealData) => (
-                    <MealEntryListItem key={`${mealData.name}-${mealData.time}`} meal={mealData} actions={[
+                    <MealEntryListItem key={`${mealData.name}-${mealData.time}-${daySearchResult.dateString}`} meal={mealData} actions={[
                         {
                             title: 'Edit Entry', onPress: () => {
                                 const itemPageParams: ItemPageParams = {

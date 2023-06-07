@@ -43,7 +43,6 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
         const futureMonth = Number(month) + 1 > 12 ?
             `${(Number(year) + 1).toString().padStart(4, '0')}-01` :
             `${year}-${(Number(month) + 1).toString().padStart(2, '0')}`;
-        console.log(`Fetching months: ${prevMonth}, ${ymKey}, ${futureMonth}`);
         const monthData = await DatabaseHandler.getInstance().getData(ymKey)
         const prevMonthData = await DatabaseHandler.getInstance().getData(prevMonth)
         const futureMonthData = await DatabaseHandler.getInstance().getData(futureMonth)
@@ -80,7 +79,9 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
         });
     });
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{
+            flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
+        }}>
             <Calendar
                 enableSwipeMonths={true}
                 onDayPress={(day) => navigation.navigate(NavigationPages.DAY, { dateString: day.dateString })}

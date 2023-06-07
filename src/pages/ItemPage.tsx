@@ -123,7 +123,6 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                 DatabaseHandler.getInstance().getData(yearMonthKey).then(monthData => {
                     setFetched(true);
                     const meal = (monthData[dayKey] ?? []).find((meal) => meal.name === options.itemName && meal.time === options.itemTime);
-                    console.log(JSON.stringify(meal));
                     if (meal) {
                         setName(meal.name);
                         setTime(meal.time);
@@ -137,7 +136,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     );
 
     return (
-        <SafeAreaView>
+        <SafeAreaView style={{
+            flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
+        }}>
             <View style={{ padding: 10, flexDirection: 'column' }}>
                 <View style={styles.formField}>
                     <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>

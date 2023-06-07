@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { DataStore, MealData, MealPreset } from "../types/Model";
+import { DataStore, MealData, MealPreset, getDefaultSettings } from "../types/Model";
 
 export function sortMealsByTime(meals: MealData[]): MealData[] {
     return meals.sort((a, b) => {
@@ -27,8 +27,9 @@ export function validateJsonStringAsDatastore(jsonString: string): DataStore {
         if (typeof parsed !== 'object') {
             throw 'Object must be a valid JSON object';
         }
-        if (_.union(Object.keys(parsed), ['database', 'presets']).length !== 2) {
-            throw 'JSON must have `database` and `presets` top-level fields.';
+        const requiredKeys = ['database', 'presets', 'settings'];
+        if (_.intersection(Object.keys(parsed), requiredKeys).length !== 3) {
+            throw `JSON must have the top-level keys: ${requiredKeys.join(', ')}`;
         }
         const dataStore = parsed as DataStore;
 
@@ -81,6 +82,7 @@ export function mergeDataStores({ preferredDataStore, mergingDataStore }: MergeD
     const mergedDataStore: DataStore = {
         database: {},
         presets: [],
+        settings: getDefaultSettings(),
     };
 
     // merge calendar database
@@ -137,6 +139,12 @@ export function mergeDataStores({ preferredDataStore, mergingDataStore }: MergeD
         return acc;
     }, [] as MealPreset[]);
     mergedDataStore.presets = pruned;
+
+    mergedDataStore.settings = _.merge(
+        getDefaultSettings(),
+        mergingDataStore.settings ?? {},
+        preferredDataStore.settings ?? {}
+    );
 
     return mergedDataStore;
 }
