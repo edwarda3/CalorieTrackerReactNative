@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { DataStore, MealData, MealPreset, getDefaultSettings } from "../types/Model";
+import { DataStore, MealData, MealPreset } from "../types/Model";
+import { getDefaultSettings } from "../types/Settings";
 
 export function sortMealsByTime(meals: MealData[]): MealData[] {
     return meals.sort((a, b) => {

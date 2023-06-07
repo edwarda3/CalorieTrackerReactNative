@@ -7,7 +7,7 @@ import { BigButton } from '../components/Buttons';
 import { HorizontalLine } from '../components/Layout';
 import { useFocusEffect } from '@react-navigation/native';
 import { DatabaseHandler } from '../data/database';
-import { AppSettings } from '../types/Model';
+import { AppSettings } from '../types/Settings';
 
 export interface HomePageProps extends NavigatedScreenProps { }
 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, SafeAreaView, Switch, Text, TextInput, View } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
-import { AppSettings, getDefaultSettings } from '../types/Model';
+import { AppSettings, getDefaultSettings } from '../types/Settings';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import { bespokeStyle, styles } from '../styles/Styles';

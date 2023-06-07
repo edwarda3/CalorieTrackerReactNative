@@ -1,5 +1,6 @@
 import _ from "lodash";
-import { AppSettings, DataStore, Database, MealData, MealPreset, MonthData, getDefaultSettings } from "../types/Model";
+import { DataStore, Database, MealData, MealPreset, MonthData } from "../types/Model";
+import { AppSettings, getDefaultSettings } from "../types/Settings";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export class DatabaseHandler {
