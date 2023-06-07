@@ -10,6 +10,7 @@ import ContextMenu from 'react-native-context-menu-view';
 import {  styles } from '../styles/Styles';
 import { sortMealsByTime } from '../data/processing';
 import { MealEntryListItem } from '../components/MealEntryListItem';
+import { ThresholdBar } from '../components/ThresholdBar';
 
 export interface DayPageParams {
     dateString: string;
@@ -55,16 +56,19 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
         }, [])
     );
 
+    const dayTotalKcal = getTotalCaloriesInADay(mealData);
+
     return (
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
         }}>
             <View style={{ padding: 10, flexDirection: 'row', gap: 20 }}>
                 <Pressable style={{ flexGrow: 1 }} onPress={refresh}>
-                    <Text style={styles.title}>Total Calories: {getTotalCaloriesInADay(mealData)}</Text>
+                    <Text style={styles.title}>Total Calories: {dayTotalKcal}</Text>
                 </Pressable>
                 <Button title='Add' onPress={() => props.navigation.navigate(NavigationPages.ITEM, options)} />
             </View>
+            {dayTotalKcal > 0 && <ThresholdBar emphasizeKcal={dayTotalKcal} />}
             <FlatList
                 data={_.map(mealData.filter(meal => !!meal), (meal) => ({
                     ...meal,

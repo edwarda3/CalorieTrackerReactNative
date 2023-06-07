@@ -13,20 +13,7 @@ import { YearMonthStats } from './ProfilePage';
 import Collapsible from 'react-native-collapsible';
 import { bespokeStyle, styles } from '../styles/Styles';
 import ContextMenu from 'react-native-context-menu-view';
-
-function getColorPerCalories(thresholds: Thresholds, kcal: number, offset = 0, transparency = 1) {
-    if (!kcal) return `rgba(255,255,255,0)`;
-    const thresholdsInOrder = Object.keys(thresholds).sort().reverse();
-    const [red, blue, green] = ((kcal: number): number[] => {
-        const matchingThreshold = thresholdsInOrder.find((th) => kcal >= Number(th));
-        if (matchingThreshold) {
-            return thresholds[Number(matchingThreshold)];
-        } else {
-            return thresholds[Number(_.last(thresholdsInOrder))];
-        }
-    })(kcal).map((hueValue) => _.clamp(hueValue + offset, 0, 255));
-    return `rgba(${red},${blue},${green},${transparency})`;
-}
+import { ThresholdBar, getColorPerCalories } from '../components/ThresholdBar';
 
 const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
     const year = ymKey.slice(0, 4);
@@ -86,13 +73,6 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
         });
     });
 
-    const thresholdsInOrder = Object.keys(settings.thresholds).sort();
-    let differences = [];
-    for (let i = 1; i < thresholdsInOrder.length; i++) {
-        differences.push(Number(thresholdsInOrder[i]) - Number(thresholdsInOrder[i - 1]));
-    }
-    // Add one more entry so that we can see the last threshold
-    differences.push(_.min(differences));
 
     return (
         <SafeAreaView style={{
@@ -155,7 +135,6 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                                         <Text style={bespokeStyle('subLabel', { fontWeight: '300' })}>{dayKcals}</Text>
                                     </View>}
                                 </Pressable>
-
                             </ContextMenu>
                         );
                     } return null;
@@ -164,25 +143,9 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                 markedDates={markedDates}
             />
             <Button title={showingLegend ? 'Hide Legend' : 'Show Legend'} onPress={() => setShowingLegend(!showingLegend)} />
-            <Collapsible collapsed={!showingLegend} style={{ alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row' }}>
-                    {_.map(differences, (difference, index) => {
-                        const kcalThreshold = Number(thresholdsInOrder[index]) === 0 ? 1 : Number(thresholdsInOrder[index]);
-                        return (
-                            <Text key={thresholdsInOrder[index]} style={{
-                                backgroundColor: getColorPerCalories(settings.thresholds, kcalThreshold),
-                                padding: 3,
-                                // width: 200,
-                                marginVertical: 2,
-                                textAlign: 'left',
-                                flexGrow: difference,
-                                fontWeight: '100',
-                                fontSize: 8
-                            }}>
-                                &gt;{thresholdsInOrder[index]}
-                            </Text>
-                        )
-                    })}
+            <Collapsible collapsed={!showingLegend} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <View style={{flexGrow: 1}}>
+                    <ThresholdBar threshold={settings.thresholds} />
                 </View>
             </Collapsible>
             {database[currentYearMonth] && <YearMonthStats monthData={database[currentYearMonth]} />}
