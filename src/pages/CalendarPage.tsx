@@ -25,16 +25,6 @@ function getColorPerCalories(thresholds: Thresholds, kcal: number, offset = 0, t
             return thresholds[Number(_.last(thresholdsInOrder))];
         }
     })(kcal).map((hueValue) => _.clamp(hueValue + offset, 0, 255));
-
-    // const [red, blue, green] = ((kcal: number): number[] => {
-    //     if (kcal >= 3000) return [224, 96, 96];
-    //     if (kcal >= 2400) return [255, 127, 80];
-    //     if (kcal >= 2000) return [255, 255, 0];
-    //     if (kcal >= 1750) return [144, 238, 144];
-    //     if (kcal >= 1500) return [173, 216, 230];
-    //     if (kcal >= 1000) return [255, 182, 193];
-    //     else return [197, 182, 269];
-    // })(kcal).map((hueValue) => _.clamp(hueValue + offset, 0, 255));
     return `rgba(${red},${blue},${green},${transparency})`;
 }
 
@@ -96,7 +86,6 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
         });
     });
 
-    // const thresholds = [0, 1000, 1500, 1750, 2000, 2400, 3000];
     const thresholdsInOrder = Object.keys(settings.thresholds).sort();
     let differences = [];
     for (let i = 1; i < thresholdsInOrder.length; i++) {
