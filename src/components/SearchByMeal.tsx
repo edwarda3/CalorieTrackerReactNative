@@ -119,7 +119,9 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                                     itemName: mealData.name,
                                     itemTime: mealData.time,
                                 }
-                                props.navigation.navigate(NavigationPages.DAY, _.omit(itemPageParams, 'itemName', 'itemTime'));
+                                if (dataStore?.settings.itemPageHasIntermediateDayPage) {
+                                    props.navigation.navigate(NavigationPages.DAY, _.omit(itemPageParams, 'itemName', 'itemTime'));
+                                }
                                 props.navigation.navigate(NavigationPages.ITEM, itemPageParams);
                             }
                         },

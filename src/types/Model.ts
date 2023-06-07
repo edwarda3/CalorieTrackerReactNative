@@ -22,11 +22,13 @@ export type MealPreset = Omit<MealData, 'time'|'servings'> & { id: string };
 
 export interface AppSettings {
     timeFormat: '12'|'24';
+    itemPageHasIntermediateDayPage: boolean;
     thresholds: Thresholds;
 }
 
 export const getDefaultSettings = (): AppSettings => ({
     timeFormat: '12',
+    itemPageHasIntermediateDayPage: true,
     thresholds: getDefaultThresholds(),
 });
 

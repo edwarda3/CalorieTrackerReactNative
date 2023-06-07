@@ -24,14 +24,22 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
         }}>
-            <View style={{ padding: 10, flexDirection: 'column', alignContent: 'center' }}>
-                <View style={{ flexDirection: 'row', gap: 10, padding: 10, flexGrow: 1 }}>
-                    <Text style={bespokeStyle('label', { flexGrow: 1 })}>Use 12-hour</Text>
+            <View style={{ padding: 10, flexDirection: 'column', flexGrow: 1 }}>
+                <View style={{ flexDirection: 'row', gap: 10, padding: 10 }}>
+                    <Text style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}>Use 12-hour</Text>
                     <Switch
                         value={appSettings?.timeFormat === '12'}
                         onValueChange={(newVal) => persistAppSettings({ timeFormat: newVal ? '12' : '24' })}
                     />
                 </View>
+                <View style={{ flexDirection: 'row', gap: 10, padding: 10 }}>
+                    <Text style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}>Going back from Entry always shows Day view</Text>
+                    <Switch
+                        value={appSettings?.itemPageHasIntermediateDayPage}
+                        onValueChange={(newVal) => persistAppSettings({ itemPageHasIntermediateDayPage: newVal })}
+                    />
+                </View>
+                <View style={{flexGrow: 1, flexShrink: 1}}></View>
                 <Button title='Reset Settings to Default' onPress={() => persistAppSettings(getDefaultSettings())} />
             </View>
         </SafeAreaView>

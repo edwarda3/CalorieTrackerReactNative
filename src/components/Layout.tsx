@@ -1,4 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, ViewStyle } from 'react-native';
+import { ColorValue, StyleSheet, View, ViewStyle } from 'react-native';
 
-export const HorizontalLine = (props: ViewStyle & { children?: never }) => <View style={{ borderBottomColor: 'black', borderBottomWidth: StyleSheet.hairlineWidth, ...props }} />
+export const HorizontalLine = (props: ViewStyle & { children?: never; lineColor?: ColorValue }) => (
+    <View style={{ borderBottomColor: props.lineColor ?? 'black', borderBottomWidth: StyleSheet.hairlineWidth, ...props }} />
+);

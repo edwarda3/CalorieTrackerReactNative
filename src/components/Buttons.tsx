@@ -3,7 +3,7 @@ import { SFSymbol, SymbolScale, SymbolWeight } from 'react-native-sfsymbols';
 
 const bigButtonStyle: StyleProp<TextStyle> = {
     fontSize: 32,
-    padding: 10,
+    padding: 15,
     margin: 5,
     color: 'navy',
     textAlign: 'center'
