@@ -140,11 +140,11 @@ export function mergeDataStores({ preferredDataStore, mergingDataStore }: MergeD
     }, [] as MealPreset[]);
     mergedDataStore.presets = pruned;
 
-    mergedDataStore.settings = _.merge(
-        getDefaultSettings(),
-        mergingDataStore.settings ?? {},
-        preferredDataStore.settings ?? {}
-    );
+    mergedDataStore.settings = {
+        ...(getDefaultSettings()),
+        ...(mergingDataStore.settings ?? {}),
+        ...(preferredDataStore.settings ?? {})
+    };
 
     return mergedDataStore;
 }

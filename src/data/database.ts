@@ -133,7 +133,7 @@ export class DatabaseHandler {
 
     public async getAppSettings(): Promise<AppSettings> {
         const previouslyStored = await this.fetchAppSettingsFromAsyncStorage();
-        const fullSettings = _.merge(getDefaultSettings(), previouslyStored) as AppSettings;
+        const fullSettings = { ...getDefaultSettings(), ...previouslyStored };
         if (!_.isEqual(previouslyStored, fullSettings)) {
             await this.setAppSettings(fullSettings);
         }
