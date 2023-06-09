@@ -68,6 +68,16 @@ export function validateJsonStringAsDatastore(jsonString: string): DataStore {
             if (typeof preset.kcalPerServing !== 'number' || preset.kcalPerServing <= 0)
                 throw `KcalPerServing of preset ${preset.name} must be a positive number.`;
         }
+        if (dataStore.settings.thresholds) {
+            _.forOwn(dataStore.settings.thresholds, (color, key) => {
+                if (isNaN(Number(key))) {
+                    throw `All threshold strings must be numbers. ${key} was NaN`;
+                }
+                if (!color || color.length !== 3) {
+                    throw `Threshold colors must be specified as an array of [red, green, blue] where each value is between 0-255`;
+                }
+            })
+        }
         return dataStore;
     } catch (err) {
         throw new Error(`Failed to validate data. ${err}`);

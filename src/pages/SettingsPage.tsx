@@ -1,17 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Button, SafeAreaView, Switch, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Alert, Button, SafeAreaView, Switch, Text, View } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
 import { AppSettings, getDefaultSettings } from '../types/Settings';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
-import { bespokeStyle, styles } from '../styles/Styles';
+import { bespokeStyle } from '../styles/Styles';
 
 export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
     const [appSettings, setAppSettings] = useState<AppSettings | null>();
 
     const persistAppSettings = async (changes: Partial<AppSettings>) => {
-        const newAppSettings = {...getDefaultSettings(), ...appSettings, ...changes};
+        const newAppSettings = { ...getDefaultSettings(), ...appSettings, ...changes };
         setAppSettings(newAppSettings);
         await DatabaseHandler.getInstance().setAppSettings(newAppSettings);
     }
@@ -19,6 +19,8 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
     useFocusEffect(useCallback(() => {
         DatabaseHandler.getInstance().getAppSettings().then((settings) => setAppSettings(settings));
     }, []));
+
+
 
     return (
         <SafeAreaView style={{
@@ -39,8 +41,24 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
                         onValueChange={(newVal) => persistAppSettings({ itemPageHasIntermediateDayPage: newVal })}
                     />
                 </View>
-                <View style={{flexGrow: 1, flexShrink: 1}}></View>
-                <Button title='Reset Settings to Default' onPress={() => persistAppSettings(getDefaultSettings())} />
+
+                <View style={{ flexGrow: 1, flexShrink: 1 }}></View>
+                <Button title='Reset Settings to Default' onPress={() => Alert.alert(
+                    'Reset Settings',
+                    `Do you want to reset the settings to default? Your current settings will be lost, Export on the Profile page to save them.`,
+                    [
+                        {
+                            text: 'Reset',
+                            onPress: () => persistAppSettings(getDefaultSettings()),
+                            style: 'destructive'
+                        },
+                        {
+                            text: 'Cancel',
+                            onPress: () => { },
+                            style: 'cancel'
+                        },
+                    ]
+                )} />
             </View>
         </SafeAreaView>
     );

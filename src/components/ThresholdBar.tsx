@@ -1,8 +1,9 @@
 import _ from 'lodash';
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
-import { Thresholds } from '../types/Model';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Text, TextStyle, View } from 'react-native';
+import { Thresholds } from '../types/Settings';
 import { DatabaseHandler } from '../data/database';
+import { useFocusEffect } from '@react-navigation/native';
 
 export interface ThresholdBarProps {
     threshold?: Thresholds;
@@ -14,13 +15,24 @@ export const ThresholdBar = (props: ThresholdBarProps) => {
         props.threshold ?? DatabaseHandler.getInstance().getAppSettingsBestEffortSync().thresholds
     );
 
-    const thresholdsInOrder = Object.keys(thresholds).sort();
+    const thresholdsInOrder = Object.keys(thresholds).map((th) => Number(th)).sort();
     let differences: number[] = [];
     for (let i = 1; i < thresholdsInOrder.length; i++) {
         differences.push(Number(thresholdsInOrder[i]) - Number(thresholdsInOrder[i - 1]));
     }
+    const minimumFlexGrow = (_.min(differences)) ?? 0 / 2
     // Add one more entry so that we can see the last threshold
-    differences.push(_.min(differences) ?? 0);
+    differences.push(minimumFlexGrow);
+    if (_.first(thresholdsInOrder) === 0) {
+        // since going from 0 to the next threshold can be much larger of a range, which is not actually interesting, shrink just the first.
+        differences[0] = minimumFlexGrow
+    }
+
+    useFocusEffect(useCallback(() => {
+        if (!props.threshold) {
+            DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setThresholds(appSettings.thresholds));
+        }
+    }, []));
 
     // keep state updated.
     useEffect(() => {
@@ -68,13 +80,13 @@ export const ThresholdBar = (props: ThresholdBarProps) => {
 
 export function getColorPerCalories(thresholds: Thresholds, kcal: number, offset = 0, transparency = 1) {
     if (!kcal) return `rgba(255,255,255,0)`;
-    const thresholdsInOrder = Object.keys(thresholds).sort().reverse();
+    const thresholdsInOrder = Object.keys(thresholds).map((th) => Number(th)).sort().reverse();
     const [red, blue, green] = ((kcal: number): number[] => {
-        const matchingThreshold = thresholdsInOrder.find((th) => kcal >= Number(th));
+        const matchingThreshold = thresholdsInOrder.find((th) => kcal >= th);
         if (matchingThreshold) {
-            return thresholds[Number(matchingThreshold)];
+            return thresholds[matchingThreshold];
         } else {
-            return thresholds[Number(_.last(thresholdsInOrder))];
+            return thresholds[_.last(thresholdsInOrder) as number];
         }
     })(kcal).map((hueValue) => _.clamp(hueValue + offset, 0, 255));
     return `rgba(${red},${blue},${green},${transparency})`;
