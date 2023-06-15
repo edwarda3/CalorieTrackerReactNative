@@ -6,15 +6,16 @@ import { DatabaseHandler } from '../data/database';
 import { mergeDataStores, validateJsonStringAsDatastore } from '../data/processing';
 import { DataStore, MonthData } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
-import { SelectList } from 'react-native-dropdown-select-list';
+import { Select } from 'native-base';
 import { isCancel, pickSingle } from 'react-native-document-picker';
 import { readFile } from 'react-native-fs';
 import { getYearMonthIndex } from '../types/Dates';
 import { styles } from '../styles/Styles';
 import { HorizontalLine } from '../components/Layout';
-import { SearchByMeal } from './SearchByMeal';
-import { SFSymbol } from 'react-native-sfsymbols';
 import { ExtensibleButton } from '../components/Buttons';
+import { InsightsChart } from '../components/InsightsCharts';
+import { getSurroundingMonths } from './CalendarPage';
+import { SFSymbol } from 'react-native-sfsymbols';
 
 export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
@@ -45,7 +46,7 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                             scale: 'medium',
                             weight: 'thin',
                         }}
-                        onPress={() => props.navigation.navigate(NavigationPages.SETTINGS)} 
+                        onPress={() => props.navigation.navigate(NavigationPages.SETTINGS)}
                     />
                 )
             });
@@ -117,6 +118,9 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
         }
     }
 
+    const { previousMonth, nextMonth } = getSurroundingMonths(inspectMonth);
+    const yearMonthsSelectOptions = Object.keys(dataStore?.database ?? {}).sort().reverse();
+
     return (
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
@@ -132,18 +136,40 @@ export function ProfilePage(props: NavigatedScreenProps): JSX.Element {
                 {error && <Text style={styles.errorText}>{error}</Text>}
                 {status && <Text style={styles.statusText}>{status}</Text>}
                 <HorizontalLine marginVertical={10} />
-                <SelectList
-                    data={_.map(Object.keys(dataStore?.database ?? {}).sort().reverse(), (yearMonth) => ({
-                        key: yearMonth,
-                        value: yearMonth,
-                    }))}
-                    defaultOption={{ key: defaultInspectionMonth, value: defaultInspectionMonth }}
-                    save='key'
-                    setSelected={(key: string) => setInspectMonth(key)}
-                />
+                <View style={{ flexDirection: 'row', gap: 10, marginHorizontal: 10, justifyContent: 'center', alignItems: 'center' }}>
+                    <ExtensibleButton title='' symbol={{ name: 'arrowtriangle.left.fill' }} onPress={() => setInspectMonth(previousMonth)} />
+                    <Select
+                        defaultValue={defaultInspectionMonth}
+                        selectedValue={inspectMonth}
+                        onValueChange={(text) => setInspectMonth(text)}
+                        accessibilityLabel='Select Month to Inspect'
+                        placeholder='Select Month'
+                        variant='unstyled'
+                        _selectedItem={{
+                            bg: "lightblue",
+                        }}
+                        dropdownIcon={<></>}
+                        {...{
+                            textAlign: 'center',
+                            fontSize: 16,
+                            minWidth: 150,
+                            borderWidth: 0,
+                        }}
+                    >
+                        {_.map(yearMonthsSelectOptions, (ym) => (
+                            <Select.Item key={ym} label={ym} value={ym} />
+                        ))}
+                        {!yearMonthsSelectOptions.includes(inspectMonth) && <Select.Item key={inspectMonth} label={inspectMonth} value={inspectMonth} />}
+                        <Text>{inspectMonth}</Text>
+                    </Select>
+                    <ExtensibleButton title='' symbol={{ name: 'arrowtriangle.right.fill' }} onPress={() => setInspectMonth(nextMonth)} />
+                </View>
                 {(!dataStore || !dataStore?.database?.[inspectMonth]) ?
                     <Text>No information for {inspectMonth}</Text> :
-                    <YearMonthStats monthData={dataStore.database[inspectMonth]} />
+                    <View>
+                        <YearMonthStats monthData={dataStore.database[inspectMonth]} />
+                        <InsightsChart monthData={dataStore.database[inspectMonth]} />
+                    </View>
                 }
             </View>
         </SafeAreaView>

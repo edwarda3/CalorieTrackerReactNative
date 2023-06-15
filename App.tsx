@@ -2,6 +2,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { PageDetail, NavigationPages, pageDetails } from './src/types/Navigation';
+import { NativeBaseProvider } from "native-base";
 import _ from 'lodash';
 
 const Stack = createNativeStackNavigator();
@@ -12,20 +13,22 @@ function App(): JSX.Element {
     )
 
     return (
-        <NavigationContainer>
-            <Stack.Navigator
-                initialRouteName={NavigationPages.HOME}
-                screenOptions={{
-                    headerStyle: {
-                        backgroundColor: 'skyblue',
-                    },
-                    headerTintColor: '#fff',
-                }}>
-                {
-                    (Object.values(pageDetails)).map(page)
-                }
-            </Stack.Navigator>
-        </NavigationContainer>
+        <NativeBaseProvider>
+            <NavigationContainer>
+                <Stack.Navigator
+                    initialRouteName={NavigationPages.HOME}
+                    screenOptions={{
+                        headerStyle: {
+                            backgroundColor: 'skyblue',
+                        },
+                        headerTintColor: '#fff',
+                    }}>
+                    {
+                        (Object.values(pageDetails)).map(page)
+                    }
+                </Stack.Navigator>
+            </NavigationContainer>
+        </NativeBaseProvider>
     );
 }
 
