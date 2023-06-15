@@ -7,10 +7,11 @@ import { MealData } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
-import {  styles } from '../styles/Styles';
+import { styles } from '../styles/Styles';
 import { sortMealsByTime } from '../data/processing';
 import { MealEntryListItem } from '../components/MealEntryListItem';
 import { ThresholdBar } from '../components/ThresholdBar';
+import { AppSettings } from '../types/Settings';
 
 export interface DayPageParams {
     dateString: string;
@@ -28,6 +29,7 @@ export function getTotalCaloriesInADay(mealData: MealData[]): number {
 
 export function DayPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
+    const [settings, setSettings] = useState<AppSettings>(DatabaseHandler.getInstance().getAppSettingsBestEffortSync());
     const options: DayPageParams = _.defaults(params as any, getDefaultDayPageParams())
 
     const [mealData, setMealData] = useState<MealData[]>([]);
@@ -35,6 +37,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
 
     const refresh = async () => {
         setRefreshing(true);
+        DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setSettings(appSettings));
         const key = options.dateString.slice(0, 7);
         const day = options.dateString.slice(8, 10);
         const monthData = await DatabaseHandler.getInstance().getData(key);
@@ -57,6 +60,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
     );
 
     const dayTotalKcal = getTotalCaloriesInADay(mealData);
+    const isToday = options.dateString === getDateString(new Date());
 
     return (
         <SafeAreaView style={{
@@ -78,21 +82,41 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                     <MealEntryListItem
                         meal={item}
                         actions={[
-                            { title: 'Edit', onPress: () => {
-                                props.navigation.navigate(NavigationPages.ITEM, {
-                                    ...options,
-                                    itemName: item.name,
-                                    itemTime: item.time,
-                                })
-                            } },
-                            { title: 'Delete', destructive: true, onPress: () => {
-                                DatabaseHandler.getInstance().modifyEntry(
-                                    options.dateString,
-                                    item.name,
-                                    item.time,
-                                    null
-                                ).then(refresh);
-                            } }
+                            {
+                                title: 'Edit', onPress: () => {
+                                    props.navigation.navigate(NavigationPages.ITEM, {
+                                        ...options,
+                                        itemName: item.name,
+                                        itemTime: item.time,
+                                    })
+                                }
+                            },
+                            {
+                                title: `Copy${isToday ? '' : ' to Today'}`, onPress: () => {
+                                    const todayDateString = getDateString(new Date());
+                                    if (settings.itemPageHasIntermediateDayPage && todayDateString !== options.dateString) {
+                                        props.navigation.push(NavigationPages.DAY, { dateString: todayDateString });
+                                    }
+                                    props.navigation.navigate(NavigationPages.ITEM, {
+                                        dateString: todayDateString,
+                                        prefill: {
+                                            name: item.name,
+                                            servings: item.servings,
+                                            kcalPerServing: item.kcalPerServing,
+                                        },
+                                    })
+                                }
+                            },
+                            {
+                                title: 'Delete', destructive: true, onPress: () => {
+                                    DatabaseHandler.getInstance().modifyEntry(
+                                        options.dateString,
+                                        item.name,
+                                        item.time,
+                                        null
+                                    ).then(refresh);
+                                }
+                            },
                         ]}
                     />
                 )}

@@ -1,11 +1,11 @@
 import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
 import { HomePage } from '../pages/HomePage';
 import { CalendarPage } from '../pages/CalendarPage';
-import { DayPage } from '../pages/DayPage';
-import { ItemPage } from '../pages/ItemPage';
+import { DayPage, DayPageParams } from '../pages/DayPage';
+import { ItemPage, ItemPageParams } from '../pages/ItemPage';
 import { PresetsPage } from '../pages/PresetsPage';
 import { ProfilePage } from '../pages/ProfilePage';
-import { SearchByMeal } from '../components/SearchByMeal';
+import { SearchByMeal } from '../pages/SearchByMeal';
 import { SettingsPage } from "../pages/SettingsPage";
 
 export enum NavigationPages {
@@ -19,14 +19,16 @@ export enum NavigationPages {
     SEARCH_BY_MEAL = 'search-by-meal',
 };
 
-type NavFunction = (routeName: string, params?: Record<string, any>) => void;
+type NavRouteParams = DayPageParams | ItemPageParams;
+
+type NavFunction = (routeName: string, params?: NavRouteParams) => void;
 
 type OptionsFunction = (props: NavigatedScreenProps) => NativeStackNavigationOptions
 
 export interface NavigatedScreenProps {
     navigation: NavigationControls,
     route: {
-        params: Record<string, any>;
+        params: NavRouteParams;
     }
 };
 

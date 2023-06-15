@@ -7,12 +7,12 @@ import ContextMenu from 'react-native-context-menu-view';
 import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
-import { DayPageParams } from '../pages/DayPage';
-import { ItemPageParams } from '../pages/ItemPage';
-import { HorizontalLine } from './Layout';
-import { MealEntryListItem } from './MealEntryListItem';
+import { DayPageParams } from './DayPage';
+import { ItemPageParams } from './ItemPage';
+import { HorizontalLine } from '../components/Layout';
+import { MealEntryListItem } from '../components/MealEntryListItem';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ExtensibleButton } from './Buttons';
+import { ExtensibleButton } from '../components/Buttons';
 import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getDateString, getDateStringParts, getYearMonthIndex } from '../types/Dates';
@@ -120,7 +120,19 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                                     itemTime: mealData.time,
                                 }
                                 if (dataStore?.settings.itemPageHasIntermediateDayPage) {
-                                    props.navigation.navigate(NavigationPages.DAY, _.omit(itemPageParams, 'itemName', 'itemTime'));
+                                    props.navigation.navigate(NavigationPages.DAY, _.pick(itemPageParams, 'dateString'));
+                                }
+                                props.navigation.navigate(NavigationPages.ITEM, itemPageParams);
+                            }
+                        },
+                        {
+                            title: 'Copy Entry to Today', onPress: () => {
+                                const itemPageParams: ItemPageParams = {
+                                    dateString: getDateString(new Date()),
+                                    prefill: _.omit(mealData, 'time'),
+                                }
+                                if (dataStore?.settings.itemPageHasIntermediateDayPage) {
+                                    props.navigation.navigate(NavigationPages.DAY, _.pick(itemPageParams, 'dateString'));
                                 }
                                 props.navigation.navigate(NavigationPages.ITEM, itemPageParams);
                             }

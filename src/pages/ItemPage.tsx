@@ -5,7 +5,7 @@ import { NavigatedScreenProps } from '../types/Navigation';
 import { DayPageParams, getDefaultDayPageParams } from './DayPage';
 import _ from 'lodash';
 import { DatabaseHandler } from '../data/database';
-import { MealPreset } from '../types/Model';
+import { MealData, MealPreset } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
@@ -13,6 +13,7 @@ import Collapsible from 'react-native-collapsible';
 export interface ItemPageParams extends DayPageParams {
     itemName?: string;
     itemTime?: string;
+    prefill?: Partial<Omit<MealData, 'time'>>;
 }
 
 function getDefaultItemPageParams(): DayPageParams {
@@ -131,6 +132,10 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         setShowSuggestions(false);
                     }
                 }).catch(() => setFetched(true));
+            } else if (options.prefill) {
+                options.prefill.name && setName(options.prefill.name);
+                options.prefill.servings && setServingsStr(options.prefill.servings.toString());
+                options.prefill.kcalPerServing && setKcalPer(options.prefill.kcalPerServing);
             }
         }, [])
     );

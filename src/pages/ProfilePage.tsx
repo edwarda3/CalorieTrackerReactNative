@@ -12,7 +12,7 @@ import { readFile } from 'react-native-fs';
 import { getYearMonthIndex } from '../types/Dates';
 import { styles } from '../styles/Styles';
 import { HorizontalLine } from '../components/Layout';
-import { SearchByMeal } from '../components/SearchByMeal';
+import { SearchByMeal } from './SearchByMeal';
 import { SFSymbol } from 'react-native-sfsymbols';
 import { ExtensibleButton } from '../components/Buttons';
 

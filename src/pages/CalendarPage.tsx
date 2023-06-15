@@ -115,7 +115,7 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                                     ]
                                 }
                                 onPress={() => {
-                                    navigation.navigate(NavigationPages.DAY, { dateString: dayProps.date?.dateString })
+                                    dayProps.date?.dateString && navigation.navigate(NavigationPages.DAY, { dateString: dayProps.date.dateString })
                                 }}
                                 disabled={_.isEmpty(databaseInfo)}
                             >
