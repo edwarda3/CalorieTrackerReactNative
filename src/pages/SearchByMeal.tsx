@@ -16,6 +16,7 @@ import { ExtensibleButton } from '../components/Buttons';
 import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getDateString, getDateStringParts, getYearMonthIndex } from '../types/Dates';
+import Toast from 'react-native-toast-message';
 
 interface DaySearchResult {
     dateString: string;
@@ -110,31 +111,50 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{daySearchResult.dateString}</Text>
                     <Text style={styles.subLabel}>Day total: {daySearchResult.daySearchTotalKcal}kcal</Text>
                 </View>
-                {_.map(daySearchResult.dayResult, (mealData) => (
-                    <MealEntryListItem key={`${mealData.name}-${mealData.time}-${daySearchResult.dateString}`} meal={mealData} actions={[
+                {_.map(daySearchResult.dayResult, (mealData) => {
+                    const navigateToItem = (params: ItemPageParams) => {
+                        if (dataStore?.settings.itemPageHasIntermediateDayPage) {
+                            props.navigation.navigate(NavigationPages.DAY, _.pick(params, 'dateString'));
+                        }
+                        props.navigation.navigate(NavigationPages.ITEM, params);
+                    }
+                    const existingPreset = dataStore?.presets.find((preset) => preset.name === mealData.name);
+                    return <MealEntryListItem key={`${mealData.name}-${mealData.time}-${daySearchResult.dateString}`} meal={mealData} actions={[
                         {
                             title: 'Edit Entry', onPress: () => {
-                                const itemPageParams: ItemPageParams = {
+                                navigateToItem({
                                     dateString: daySearchResult.dateString,
                                     itemName: mealData.name,
                                     itemTime: mealData.time,
-                                }
-                                if (dataStore?.settings.itemPageHasIntermediateDayPage) {
-                                    props.navigation.navigate(NavigationPages.DAY, _.pick(itemPageParams, 'dateString'));
-                                }
-                                props.navigation.navigate(NavigationPages.ITEM, itemPageParams);
+                                })
                             }
                         },
                         {
                             title: 'Copy Entry to Today', onPress: () => {
-                                const itemPageParams: ItemPageParams = {
+                                navigateToItem({
                                     dateString: getDateString(new Date()),
                                     prefill: _.omit(mealData, 'time'),
-                                }
-                                if (dataStore?.settings.itemPageHasIntermediateDayPage) {
-                                    props.navigation.navigate(NavigationPages.DAY, _.pick(itemPageParams, 'dateString'));
-                                }
-                                props.navigation.navigate(NavigationPages.ITEM, itemPageParams);
+                                });
+                            }
+                        },
+                        {
+                            title: !!existingPreset ? 'Preset Exists' : 'Save as Preset', disabled: !!existingPreset || !dataStore, onPress: async () => {
+                                if (!dataStore) return;
+                                const newPresets = _.cloneDeep(dataStore?.presets);
+                                newPresets.push({
+                                    id: Date.now().toString(),
+                                    name: mealData.name,
+                                    kcalPerServing: mealData.kcalPerServing
+                                })
+                                await DatabaseHandler.getInstance().setPresets(newPresets);
+                                setDatastore({
+                                    ...dataStore,
+                                    presets: newPresets
+                                });
+                                Toast.show({
+                                    type: 'success',
+                                    text1: `Successfully saved preset ${_.startCase(mealData.name)}`
+                                })
                             }
                         },
                         {
@@ -147,14 +167,11 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                             }
                         }
                     ]} />
-                ))}
+                })}
             </View>
             <HorizontalLine />
         </ContextMenu>
     )
-
-    const { year, month, day } = getDateStringParts(getDateString(new Date()));
-    const lastMonthYMKey = (Number(month) - 1 === 0) ? `${Number(year)-1}-${12}` : `${year}-${(Number(month) - 1).toString().padStart(2, '0')}`;
 
     return (
         <SafeAreaView style={{
@@ -209,6 +226,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                 renderItem={({ item }) => getDaySearchResult(item)}
                 keyExtractor={item => item.dateString}
             />
+            <Toast />
         </SafeAreaView>
     );
 }

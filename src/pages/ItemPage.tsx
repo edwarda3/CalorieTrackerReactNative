@@ -9,6 +9,7 @@ import { MealData, MealPreset } from '../types/Model';
 import { useFocusEffect } from '@react-navigation/native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
+import Toast from 'react-native-toast-message';
 
 export interface ItemPageParams extends DayPageParams {
     itemName?: string;
@@ -38,7 +39,6 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const [servingsStr, setServingsStr] = useState<string>('1');
     const [kcalPer, setKcalPer] = useState<number>(0);
     const [errors, setErrors] = useState<string[]>([]);
-    const [status, setStatus] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
 
     const validateEntry = async (): Promise<string[]> => {
@@ -91,7 +91,6 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     }
 
     const savePreset = async () => {
-        setStatus(null);
         setShowSuggestions(false);
         if (_.isEmpty(name) || !kcalPer) {
             setErrors(['Must provide name and kcal per to save a preset']);
@@ -106,7 +105,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         });
         setAvailablePresets(presets);
         await DatabaseHandler.getInstance().setPresets(presets);
-        setStatus(`Saved preset ${name} successfully`);
+        Toast.show({
+            text1: `Successfully saved preset ${_.startCase(name)}`
+        });
     }
 
     useFocusEffect(
@@ -242,8 +243,8 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
                 </View>
                 {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}
-                {status && <Text style={styles.statusText}>{status}</Text>}
             </View>
+            <Toast />
         </SafeAreaView>
     );
 }

@@ -3,7 +3,7 @@ import { Button, FlatList, Pressable, SafeAreaView, Text, View } from 'react-nat
 import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
 import _ from 'lodash';
 import { getDateString } from '../types/Dates';
-import { MealData } from '../types/Model';
+import { MealData, MealPreset } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
@@ -12,6 +12,7 @@ import { sortMealsByTime } from '../data/processing';
 import { MealEntryListItem } from '../components/MealEntryListItem';
 import { ThresholdBar } from '../components/ThresholdBar';
 import { AppSettings } from '../types/Settings';
+import Toast from 'react-native-toast-message';
 
 export interface DayPageParams {
     dateString: string;
@@ -30,6 +31,7 @@ export function getTotalCaloriesInADay(mealData: MealData[]): number {
 export function DayPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
     const [settings, setSettings] = useState<AppSettings>(DatabaseHandler.getInstance().getAppSettingsBestEffortSync());
+    const [presets, setPresets] = useState<MealPreset[]|null>(null);
     const options: DayPageParams = _.defaults(params as any, getDefaultDayPageParams())
 
     const [mealData, setMealData] = useState<MealData[]>([]);
@@ -38,6 +40,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
     const refresh = async () => {
         setRefreshing(true);
         DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setSettings(appSettings));
+        DatabaseHandler.getInstance().getPresets().then(savedPresets => setPresets(savedPresets));
         const key = options.dateString.slice(0, 7);
         const day = options.dateString.slice(8, 10);
         const monthData = await DatabaseHandler.getInstance().getData(key);
@@ -78,8 +81,9 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                     ...meal,
                     id: `${meal.time}-${meal.name}`,
                 }))}
-                renderItem={({ item }) => (
-                    <MealEntryListItem
+                renderItem={({ item }) => {
+                    const existingPreset = presets?.find((preset) => preset.name === item.name);
+                    return <MealEntryListItem
                         meal={item}
                         actions={[
                             {
@@ -108,6 +112,23 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 }
                             },
                             {
+                                title: !!existingPreset ? 'Preset Exists' : 'Save as Preset', disabled: !!existingPreset || !presets, onPress: async () => {
+                                    if (!presets) return;
+                                    const newPresets = _.cloneDeep(presets);
+                                    newPresets.push({
+                                        id: Date.now().toString(),
+                                        name: item.name,
+                                        kcalPerServing: item.kcalPerServing
+                                    })
+                                    await DatabaseHandler.getInstance().setPresets(newPresets);
+                                    setPresets(newPresets);
+                                    Toast.show({
+                                        type: 'success',
+                                        text1: `Successfully saved preset ${_.startCase(item.name)}`
+                                    })
+                                }
+                            },
+                            {
                                 title: 'Delete', destructive: true, onPress: () => {
                                     DatabaseHandler.getInstance().modifyEntry(
                                         options.dateString,
@@ -119,11 +140,12 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                             },
                         ]}
                     />
-                )}
+                }}
                 keyExtractor={item => item.id}
                 refreshing={refreshing}
                 onRefresh={refresh}
             />
+            <Toast />
         </SafeAreaView>
     );
 }
