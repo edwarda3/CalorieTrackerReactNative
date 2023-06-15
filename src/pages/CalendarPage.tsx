@@ -16,7 +16,7 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import ContextMenu from 'react-native-context-menu-view';
 import { ThresholdBar, getColorPerCalories } from '../components/ThresholdBar';
 
-const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
+export const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
     const year = ymKey.slice(0, 4);
     const month = ymKey.slice(5, 7);
     const previousMonth = Number(month) - 1 <= 0 ?
