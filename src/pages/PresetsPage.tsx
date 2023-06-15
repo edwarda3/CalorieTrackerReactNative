@@ -109,6 +109,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     flexDirection: 'row',
                     gap: 20,
                     alignItems: 'center',
+                    flexWrap: 'nowrap'
                 }}>
                     <TextInput
                         style={styles.input}
@@ -123,7 +124,9 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                         placeholder='Preset Meal Kcals per serving'
                         inputMode='numeric'
                     />
-                    <Button title={presetMealId ? 'Submit' : 'Add'} onPress={() => modifyPreset()} />
+                    <View style={{flexGrow: 1}}>
+                        <Button title={presetMealId ? 'Submit' : 'Add'} onPress={() => modifyPreset()} />
+                    </View>
                 </View>
                 {error && <Text style={styles.errorText}>{error}</Text>}
             </View>

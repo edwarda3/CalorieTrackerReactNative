@@ -17,6 +17,7 @@ export const rawStyles: Record<string, ViewStyle | TextStyle | ImageStyle> = {
         borderBottomWidth: StyleSheet.hairlineWidth,
         padding: 10,
         flexGrow: 1,
+        flexShrink: 1,
     },
     formField: {
         flexDirection: 'row',

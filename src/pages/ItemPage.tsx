@@ -203,7 +203,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     </Collapsible>
                 </View>
                 <View style={styles.formField}>
-                    <Text style={styles.label}>Servings Test</Text>
+                    <Text style={styles.label}>Servings</Text>
                     <TextInput
                         style={styles.input}
                         onChangeText={(text) => setServingsStr(text)}
@@ -213,6 +213,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         placeholderTextColor='grey'
                         inputMode='decimal'
                         keyboardType='decimal-pad'
+                        selectTextOnFocus={true}
                     />
                 </View>
                 <View style={styles.formField}>
@@ -228,6 +229,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         placeholder='Kcals per serving'
                         placeholderTextColor='grey'
                         inputMode='numeric'
+                        selectTextOnFocus={true}
                     />
                 </View>
                 <View style={styles.formField}>
