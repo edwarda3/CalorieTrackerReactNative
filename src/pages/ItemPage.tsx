@@ -10,6 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
+import { sortPresets } from './PresetsPage';
 
 export interface ItemPageParams extends DayPageParams {
     itemName?: string;
@@ -141,11 +142,15 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         }, [])
     );
 
+    const filteredPresets = (availablePresets ?? [])
+        .filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase()));
+    const sortedPresets = sortPresets(filteredPresets);
+
     return (
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
         }}>
-            <View style={{ padding: 10, flexDirection: 'column' }}>
+            <View style={{ paddingVertical: 10, paddingLeft: 10, flexDirection: 'column' }}>
                 <View style={styles.formField}>
                     <View style={{ flexDirection: 'row', flexGrow: 1, gap: 30 }}>
                         <Text style={styles.label}>Time</Text>
@@ -191,8 +196,8 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         />
                     </View>
                     <Collapsible collapsed={!showSuggestions} style={{ padding: 5 }}>
-                        <ScrollView style={{ maxHeight: 200 }}>
-                            {_.map(availablePresets.filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase())) ?? [],
+                        <ScrollView style={{ maxHeight: 200 }} indicatorStyle='black'>
+                            {_.map(sortedPresets,
                                 (preset) => (
                                     <Pressable key={preset.id} style={{ paddingBottom: 10 }} onPress={() => {
                                         setName(preset.name);
@@ -238,7 +243,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         selectTextOnFocus={true}
                     />
                 </View>
-                <View style={styles.formField}>
+                <View style={bespokeStyle('formField', {paddingRight: 10})}>
                     <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
                     <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
                 </View>

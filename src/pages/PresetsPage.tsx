@@ -10,6 +10,10 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import { getYearMonthIndex } from '../types/Dates';
 import { getSurroundingMonths } from './CalendarPage';
 
+export const sortPresets = (presets: MealPreset[]): MealPreset[] => {
+    return (presets ?? []).sort((preset1, preset2) => preset1.name.localeCompare(preset2.name));
+}
+
 export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
     const [presets, setPresets] = useState<MealPreset[]>([]);
     const [recentMealEntries, setRecentMealEntries] = useState<MealData[]>([]);
@@ -82,6 +86,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
 
     const getPresetView = (preset: MealPreset) => (
         <ContextMenu
+            key={preset.id}
             previewBackgroundColor='rgba(0,0,0,0)'
             actions={[
                 { title: 'Edit' },
@@ -109,13 +114,18 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             // abort if we find a preset with the name already, we don't need to count it.
             return acc;
         }
-        const index = acc.findIndex((stored) => stored.name === entry.name && stored.kcalPerServing === entry.kcalPerServing);
+        const index = acc.findIndex((stored) => {
+            return (
+                stored.name.trim().toLowerCase() === entry.name.trim().toLowerCase() &&
+                stored.kcalPerServing === entry.kcalPerServing
+            );
+        });
         if (index >= 0) {
             acc[index].times += 1;
         } else {
             acc.push({
                 times: 1,
-                name: entry.name,
+                name: entry.name.trim().toLowerCase(),
                 kcalPerServing: entry.kcalPerServing
             });
         }
@@ -126,6 +136,10 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
         .filter((a) => a.times >= 2)
         // show the first 6 suggestions
         .slice(0, 6);
+
+    const filteredPresets = (presets ?? [])
+        .filter((preset) => (!!preset && preset.name.toLowerCase().includes(filter.toLowerCase())));
+    const sortedPresets = sortPresets(filteredPresets);
 
     return (
         <SafeAreaView style={{
@@ -185,13 +199,13 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     placeholderTextColor='grey'
                 />
             </View>
-            <FlatList
-                data={presets.filter(preset => (!!preset && preset.name.toLowerCase().includes(filter.toLowerCase())))}
-                renderItem={({ item }) => getPresetView(item)}
-                keyExtractor={item => item.id}
-                refreshing={refreshing}
-                onRefresh={refresh}
-            />
+            <ScrollView
+                style={{flexDirection: 'column'}}
+                indicatorStyle='black'
+                onScrollBeginDrag={() => Keyboard.dismiss()}
+            >
+                {_.map(sortedPresets, getPresetView)}
+            </ScrollView>
         </SafeAreaView>
     );
 }

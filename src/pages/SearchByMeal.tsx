@@ -17,6 +17,7 @@ import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getDateString, getDateStringParts, getYearMonthIndex } from '../types/Dates';
 import Toast from 'react-native-toast-message';
+import { ScrollView } from 'native-base';
 
 interface DaySearchResult {
     dateString: string;
@@ -221,11 +222,9 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
             </Collapsible>
             <Text style={bespokeStyle('subLabel', { paddingHorizontal: 10, marginTop: 10 })}>{searchResult.length} results found</Text>
             <HorizontalLine marginTop={10} />
-            <FlatList
-                data={searchResult}
-                renderItem={({ item }) => getDaySearchResult(item)}
-                keyExtractor={item => item.dateString}
-            />
+            <ScrollView indicatorStyle='black' onScrollBeginDrag={() => Keyboard.dismiss()}>
+                {_.map(searchResult, getDaySearchResult)}
+            </ScrollView>
             <Toast />
         </SafeAreaView>
     );
