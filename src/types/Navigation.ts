@@ -7,6 +7,10 @@ import { PresetsPage } from '../pages/PresetsPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { SearchByMeal } from '../pages/SearchByMeal';
 import { SettingsPage } from "../pages/SettingsPage";
+import { AppSettings } from "./Settings";
+import _ from "lodash";
+import { dayBefore, formatTime, getDateString, getTimeHourMinutes, timeToFloat } from "./Dates";
+import { Alert } from "react-native";
 
 export enum NavigationPages {
     HOME = 'home',
@@ -91,4 +95,54 @@ export const pageDetails: Record<NavigationPages, PageDetail> = {
         symbolName: 'book.closed',
         component: PresetsPage
     },
+}
+
+export function navigateToItemPage(appSettings: AppSettings, navigation: NavigationControls, params?: ItemPageParams) {
+    const navigateWithDay = (specifiedDate?: string, specifiedTime?: string) => {
+        const itemPageParams: ItemPageParams = {
+            ...params,
+            dateString: specifiedDate ?? getDateString(new Date()),
+        };
+        if (specifiedTime) {
+            itemPageParams.prefill = {
+                ...(itemPageParams.prefill ?? {}),
+                time: specifiedTime,
+            };
+        }
+        if (appSettings?.itemPageHasIntermediateDayPage) {
+            navigation.navigate(NavigationPages.DAY, (specifiedDate || params) ? _.pick(itemPageParams, 'dateString') : undefined);
+        }
+        navigation.navigate(NavigationPages.ITEM, itemPageParams);
+    }
+    // TODO Encapsulate navigation with daypage and itempage with Copy to Today and Quick add, plus from daypage
+    const currentTime = timeToFloat(getTimeHourMinutes(new Date()));
+    const rolloverLimit = timeToFloat(appSettings.rolloverPeriod);
+    if (appSettings.enableRollover && currentTime <= rolloverLimit) {
+        const yesterday = getDateString(dayBefore(new Date()));
+        if (appSettings.promptForRollover) {
+            Alert.alert(
+                'Rollover',
+                `Current time is before ${formatTime(appSettings.rolloverPeriod, appSettings.timeFormat)}, do you want to add to ${yesterday}?`,
+                [
+                    {
+                        text: `Add to Yesterday (${yesterday})`,
+                        onPress: () => navigateWithDay(yesterday, '23:59'),
+                    },
+                    {
+                        text: `Add to Today (${getDateString(new Date())})`,
+                        onPress: () => navigateWithDay(),
+                    },
+                    {
+                        text: `Cancel`,
+                        onPress: () => {},
+                        style: 'cancel'
+                    },
+                ]
+            )
+        } else {
+            navigateWithDay(yesterday);
+        }
+    } else {
+        navigateWithDay();
+    }
 }

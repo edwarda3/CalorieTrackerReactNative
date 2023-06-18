@@ -37,8 +37,13 @@ export const getOnlyDayOfMonth = (date: Date): string => date.toLocaleDateString
 
 export const getDateString = (date: Date): string => `${getYearMonthIndex(date)}-${getOnlyDayOfMonth(date)}`;
 
-// time refers to a 13:52 (MM:SS) timestamp.
-export const formatToAmPm = (time: string) => {
+export const getTimeHourMinutes = (date: Date): string => {
+    const hours = String(date?.getHours()).padStart(2, '0');
+    const minutes = String(date?.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
+export const formatTime = (time: string, format: '12'|'24') => {
     const [hoursStr, minutesStr] = time.split(":");
     const hours = Number(hoursStr);
     const minutes = Number(minutesStr);
@@ -53,8 +58,19 @@ export const formatToAmPm = (time: string) => {
     const formattedTime = date.toLocaleString(undefined, {
         hour: '2-digit',
         minute: '2-digit',
-        hour12: DatabaseHandler.getInstance().getAppSettingsBestEffortSync().timeFormat === '12',
+        hour12: format === '12',
     });
 
     return formattedTime;
 }
+
+// time refers to a 13:52 (MM:SS) timestamp.
+export const formatToAmPm = (time: string) => formatTime(time, DatabaseHandler.getInstance().getAppSettingsBestEffortSync().timeFormat);
+
+export const timeToFloat = (hhmm: string) => {
+    const [hour, min] = hhmm.split(':');
+    const minAs0To1 = Number(min) / 60;
+    return Number(hour) + minAs0To1;
+}
+
+export const dayBefore = (date: Date): Date => new Date(date.getTime() - 24 * 60 * 60 * 1000);

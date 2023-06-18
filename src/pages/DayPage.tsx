@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Button, FlatList, Pressable, SafeAreaView, Text, View } from 'react-native';
-import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
+import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import _ from 'lodash';
 import { getDateString } from '../types/Dates';
 import { MealData, MealPreset } from '../types/Model';
@@ -88,7 +88,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                         actions={[
                             {
                                 title: 'Edit', onPress: () => {
-                                    props.navigation.navigate(NavigationPages.ITEM, {
+                                    navigateToItemPage(settings, props.navigation, {
                                         ...options,
                                         itemName: item.name,
                                         itemTime: item.time,
@@ -97,18 +97,14 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                             },
                             {
                                 title: `Copy${isToday ? '' : ' to Today'}`, onPress: () => {
-                                    const todayDateString = getDateString(new Date());
-                                    if (settings.itemPageHasIntermediateDayPage && todayDateString !== options.dateString) {
-                                        props.navigation.push(NavigationPages.DAY, { dateString: todayDateString });
-                                    }
-                                    props.navigation.navigate(NavigationPages.ITEM, {
-                                        dateString: todayDateString,
+                                    navigateToItemPage(settings, props.navigation, {
+                                        dateString: getDateString(new Date()),
                                         prefill: {
                                             name: item.name,
                                             servings: item.servings,
                                             kcalPerServing: item.kcalPerServing,
-                                        },
-                                    })
+                                        }
+                                    });
                                 }
                             },
                             {

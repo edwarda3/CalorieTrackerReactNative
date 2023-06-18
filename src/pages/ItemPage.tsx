@@ -11,11 +11,15 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
 import { sortPresets } from './PresetsPage';
+import { getTimeHourMinutes } from '../types/Dates';
 
 export interface ItemPageParams extends DayPageParams {
+    // The name of the item, if it already exists. If creating a new item, leave this blank.
     itemName?: string;
+    // The time of the item, if it already exists. If creating a new item, leave this blank.
     itemTime?: string;
-    prefill?: Partial<Omit<MealData, 'time'>>;
+    // Data to prefill on a NEW item entry. Does not affect editing an existing item.
+    prefill?: Partial<MealData>;
 }
 
 function getDefaultItemPageParams(): DayPageParams {
@@ -66,7 +70,24 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         return validationErrors;
     }
 
-    const submitEntry = async (deleting = false) => {
+    const deleteEntry = async () => {
+        // Delete button shouldn't show up if itemName is undefined, so this if statement is just for linting.
+        // It should always be defined when calling deleteEntry.
+        if (options.itemName && options.itemTime) {
+            setSubmitting(true);
+            setShowSuggestions(false);
+            await DatabaseHandler.getInstance().modifyEntry(
+                options.dateString,
+                options.itemName,
+                options.itemTime,
+                null
+            );
+            setSubmitting(false);
+            props.navigation.goBack();
+        }
+    }
+
+    const submitEntry = async () => {
         const servings = Number(servingsStr);
         const validationResult = await validateEntry();
         if (!_.isEmpty(validationResult)) {
@@ -79,7 +100,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                 options.dateString,
                 options.itemName ?? name,
                 options.itemTime ?? time,
-                deleting ? null : {
+                {
                     name,
                     time,
                     servings,
@@ -115,7 +136,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         useCallback(() => {
             props.navigation.setOptions({
                 title: options.itemName ? `Editing ${options.itemName}` : 'New Item',
-                headerRight: () => <Button title='Delete' onPress={() => submitEntry(true)} />
+                headerRight: options.itemName ? 
+                    (() => <Button title='Delete' onPress={deleteEntry} />) :
+                    undefined
             });
 
             DatabaseHandler.getInstance().getPresets().then(presets => setAvailablePresets(presets));
@@ -134,7 +157,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         setShowSuggestions(false);
                     }
                 }).catch(() => setFetched(true));
-            } else if (options.prefill) {
+            } else if (!fetched && options.prefill) {
+                setFetched(true);
+                options.prefill.time && setTime(options.prefill.time);
                 options.prefill.name && setName(options.prefill.name);
                 options.prefill.servings && setServingsStr(options.prefill.servings.toString());
                 options.prefill.kcalPerServing && setKcalPer(options.prefill.kcalPerServing);
@@ -156,10 +181,8 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         <Text style={styles.label}>Time</Text>
                         <DateTimePicker
                             onChange={({ type }, date) => {
-                                if (type === 'set') {
-                                    const hours = String(date?.getHours()).padStart(2, '0');
-                                    const minutes = String(date?.getMinutes()).padStart(2, '0');
-                                    setTime(`${hours}:${minutes}`)
+                                if (type === 'set' && date) {
+                                    setTime(getTimeHourMinutes(date))
                                 }
                             }}
                             value={new Date(`${options.dateString} ${time}`)}

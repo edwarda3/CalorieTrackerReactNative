@@ -1,14 +1,15 @@
 import React, { useCallback, useState } from 'react';
-import { Alert, Button, SafeAreaView, Switch, Text, View } from 'react-native';
+import { Alert, Button, SafeAreaView, Switch, Text, View, ViewProps, ViewStyle } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
-import { AppSettings, getDefaultSettings } from '../types/Settings';
+import { AppSettings, getDefaultSettings, settingsDescriptions } from '../types/Settings';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
-import { bespokeStyle } from '../styles/Styles';
+import { SettingsSwitch, SettingsSwitchType } from '../components/SettingsSwitch';
+import { HorizontalLine } from '../components/Layout';
 
 export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
-    const [appSettings, setAppSettings] = useState<AppSettings | null>();
+    const [appSettings, setAppSettings] = useState<AppSettings>(getDefaultSettings());
 
     const persistAppSettings = async (changes: Partial<AppSettings>) => {
         const newAppSettings = { ...getDefaultSettings(), ...appSettings, ...changes };
@@ -20,27 +21,52 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
         DatabaseHandler.getInstance().getAppSettings().then((settings) => setAppSettings(settings));
     }, []));
 
-
-
     return (
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
         }}>
             <View style={{ padding: 10, flexDirection: 'column', flexGrow: 1 }}>
-                <View style={{ flexDirection: 'row', gap: 10, padding: 10 }}>
-                    <Text style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}>Use 12-hour</Text>
-                    <Switch
-                        value={appSettings?.timeFormat === '12'}
-                        onValueChange={(newVal) => persistAppSettings({ timeFormat: newVal ? '12' : '24' })}
+
+                <SettingsSwitch
+                    type={SettingsSwitchType.Toggle}
+                    value={appSettings?.timeFormat === '12'}
+                    label='Use 12-hour'
+                    description={settingsDescriptions.timeFormat(appSettings)}
+                    onValueChanged={(isEnabled) => persistAppSettings({ timeFormat: isEnabled ? '12' : '24' })}
+                />
+                <HorizontalLine />
+                <SettingsSwitch
+                    type={SettingsSwitchType.Toggle}
+                    value={appSettings?.itemPageHasIntermediateDayPage}
+                    label='Going back from Entry always shows Day view'
+                    description={settingsDescriptions.itemPageHasIntermediateDayPage(appSettings)}
+                    onValueChanged={(isEnabled) => persistAppSettings({ itemPageHasIntermediateDayPage: isEnabled })}
+                />
+                <HorizontalLine />
+                <SettingsSwitch
+                    type={SettingsSwitchType.Toggle}
+                    value={appSettings?.enableRollover}
+                    label='Enable Rollover'
+                    description={settingsDescriptions.enableRollover(appSettings)}
+                    onValueChanged={(isEnabled) => persistAppSettings({ enableRollover: isEnabled })}
+                />
+                {appSettings?.enableRollover && <View style={{flexDirection: 'column', paddingLeft: 10}}>
+                    <SettingsSwitch
+                        type={SettingsSwitchType.Time}
+                        value={appSettings?.rolloverPeriod}
+                        label='Rollover Period'
+                        description={settingsDescriptions.rolloverPeriod(appSettings)}
+                        onValueChanged={(newValue) => persistAppSettings({ rolloverPeriod: newValue })}
                     />
-                </View>
-                <View style={{ flexDirection: 'row', gap: 10, padding: 10 }}>
-                    <Text style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}>Going back from Entry always shows Day view</Text>
-                    <Switch
-                        value={appSettings?.itemPageHasIntermediateDayPage}
-                        onValueChange={(newVal) => persistAppSettings({ itemPageHasIntermediateDayPage: newVal })}
+                    <SettingsSwitch
+                        type={SettingsSwitchType.Toggle}
+                        value={appSettings?.promptForRollover}
+                        label='Prompt when adding via Rollover'
+                        description={settingsDescriptions.promptForRollover(appSettings)}
+                        onValueChanged={(isEnabled) => persistAppSettings({ promptForRollover: isEnabled })}
                     />
-                </View>
+                </View>}
+                <HorizontalLine />
 
                 <View style={{ flexGrow: 1, flexShrink: 1 }}></View>
                 <Button title='Reset Settings to Default' onPress={() => Alert.alert(

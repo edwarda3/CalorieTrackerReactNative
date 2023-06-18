@@ -4,7 +4,7 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import { DataStore, Database, MealData } from '../types/Model';
 import _ from 'lodash';
 import ContextMenu from 'react-native-context-menu-view';
-import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
+import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import { DayPageParams } from './DayPage';
@@ -113,17 +113,11 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     <Text style={styles.subLabel}>Day total: {daySearchResult.daySearchTotalKcal}kcal</Text>
                 </View>
                 {_.map(daySearchResult.dayResult, (mealData) => {
-                    const navigateToItem = (params: ItemPageParams) => {
-                        if (dataStore?.settings.itemPageHasIntermediateDayPage) {
-                            props.navigation.navigate(NavigationPages.DAY, _.pick(params, 'dateString'));
-                        }
-                        props.navigation.navigate(NavigationPages.ITEM, params);
-                    }
                     const existingPreset = dataStore?.presets.find((preset) => preset.name === mealData.name);
                     return <MealEntryListItem key={`${mealData.name}-${mealData.time}-${daySearchResult.dateString}`} meal={mealData} actions={[
                         {
                             title: 'Edit Entry', onPress: () => {
-                                navigateToItem({
+                                navigateToItemPage(dataStore?.settings!, props.navigation, {
                                     dateString: daySearchResult.dateString,
                                     itemName: mealData.name,
                                     itemTime: mealData.time,
@@ -132,7 +126,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         },
                         {
                             title: 'Copy Entry to Today', onPress: () => {
-                                navigateToItem({
+                                navigateToItemPage(dataStore?.settings!, props.navigation, {
                                     dateString: getDateString(new Date()),
                                     prefill: _.omit(mealData, 'time'),
                                 });

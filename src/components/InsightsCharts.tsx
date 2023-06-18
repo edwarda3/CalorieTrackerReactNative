@@ -4,16 +4,11 @@ import { Pressable, Text, View, ViewStyle } from 'react-native';
 import { Chart, Line, Area, HorizontalAxis, VerticalAxis, ChartDataPoint } from 'react-native-responsive-linechart'
 import _ from 'lodash';
 import { sortMealsByTime } from '../data/processing';
+import { timeToFloat } from '../types/Dates';
 
 export interface InsightsChartProps {
     monthData: MonthData;
     style?: ViewStyle;
-}
-
-const timeToFloat = (hhmm: string) => {
-    const [hour, min] = hhmm.split(':');
-    const minAs0To1 = Number(min) / 60;
-    return Number(hour) + minAs0To1;
 }
 
 export const InsightsChart = (props: InsightsChartProps) => {

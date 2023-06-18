@@ -2,7 +2,7 @@
 import React, { useCallback, useState } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native';
-import { NavigatedScreenProps, NavigationPages, pageDetails } from '../types/Navigation';
+import { NavigatedScreenProps, NavigationPages, navigateToItemPage, pageDetails } from '../types/Navigation';
 import { BigButton } from '../components/Buttons';
 import { HorizontalLine } from '../components/Layout';
 import { useFocusEffect } from '@react-navigation/native';
@@ -32,10 +32,7 @@ export function HomePage(props: HomePageProps): JSX.Element {
                 <HorizontalLine />
                 <BigButton title='Go to Today' symbol={{name: pageDetails[NavigationPages.DAY].symbolName}} onPress={() => navigation.navigate(NavigationPages.DAY)} />
                 <HorizontalLine />
-                <BigButton title='Quick Add Entry' symbol={{name: pageDetails[NavigationPages.ITEM].symbolName}} onPress={() => {
-                    if (settings.itemPageHasIntermediateDayPage) navigation.navigate(NavigationPages.DAY);
-                    navigation.navigate(NavigationPages.ITEM);
-                }} />
+                <BigButton title='Quick Add Entry' symbol={{name: pageDetails[NavigationPages.ITEM].symbolName}} onPress={() => navigateToItemPage(settings, navigation)} />
                 <HorizontalLine />
                 <BigButton title='Manage Presets' symbol={{name: pageDetails[NavigationPages.PRESETS].symbolName}} onPress={() => navigation.navigate(NavigationPages.PRESETS)} />
                 <HorizontalLine />
