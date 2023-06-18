@@ -101,7 +101,7 @@ export function navigateToItemPage(appSettings: AppSettings, navigation: Navigat
     const navigateWithDay = (specifiedDate?: string, specifiedTime?: string) => {
         const itemPageParams: ItemPageParams = {
             ...params,
-            dateString: specifiedDate ?? getDateString(new Date()),
+            dateString: specifiedDate ?? params?.dateString ?? getDateString(new Date()),
         };
         if (specifiedTime) {
             itemPageParams.prefill = {
