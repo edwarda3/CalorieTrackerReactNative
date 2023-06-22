@@ -188,7 +188,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     placeholderTextColor='grey'
                     inputMode='numeric'
                 />
-                <ExtensibleButton title='Filter' style={bespokeStyle('subLabel', {padding: 20})} onPress={() => setShowDateFilters(!showDateFilters)} />
+                <ExtensibleButton title='Filters' style={bespokeStyle('subLabel', {padding: 20})} onPress={() => setShowDateFilters(!showDateFilters)} />
             </View>
             <Collapsible collapsed={!showDateFilters} style={{flexDirection: 'row', alignItems: 'center', gap: 10, justifyContent: 'center'}}>
                 <Text style={styles.subLabel}>From</Text>

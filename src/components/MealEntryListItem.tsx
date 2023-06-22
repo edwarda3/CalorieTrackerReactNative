@@ -6,16 +6,21 @@ import { Text, View, ViewStyle } from 'react-native';
 import { styles } from '../styles/Styles';
 import { formatToAmPm } from '../types/Dates';
 
+export interface MealEntryContextMenuAction extends ContextMenuAction {
+    onPress?: () => void;
+    hideOption?: boolean;
+}
+
 export interface MealEntryListItemProps {
     meal: MealData;
-    actions: Array<ContextMenuAction & { onPress?: () => void }>
+    actions: Array<MealEntryContextMenuAction>;
     containerStyling?: ViewStyle;
 }
 
 export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntryListItemProps) => (
     <ContextMenu
         previewBackgroundColor='rgba(0,0,0,0)'
-        actions={_.map(actions, (action) => _.omit(action, 'onPress'))}
+        actions={_.map(actions.filter(a => !a.hideOption), (action) => _.omit(action, 'onPress'))}
         onPress={({ nativeEvent }) => {
             const matchedEvent = _.find(actions, (action) => action.title === nativeEvent.name);
             matchedEvent?.onPress?.();

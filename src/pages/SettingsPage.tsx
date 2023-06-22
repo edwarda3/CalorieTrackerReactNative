@@ -173,6 +173,14 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
                 <HorizontalLine />
                 <SettingsSwitch
                     type={SettingsSwitchType.Toggle}
+                    value={appSettings.addOneOnAllDays}
+                    label='Show "Add 1 Serving" on all days'
+                    description={settingsDescriptions.addOneOnAllDays(appSettings)}
+                    onValueChanged={(isEnabled) => persistAppSettings({ addOneOnAllDays: isEnabled })}
+                />
+                <HorizontalLine />
+                <SettingsSwitch
+                    type={SettingsSwitchType.Toggle}
                     value={appSettings.enableRollover}
                     label='Enable Rollover'
                     description={settingsDescriptions.enableRollover(appSettings)}

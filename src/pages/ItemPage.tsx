@@ -12,6 +12,7 @@ import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
 import { sortPresets } from './PresetsPage';
 import { getTimeHourMinutes } from '../types/Dates';
+import { ExtensibleButton } from '../components/Buttons';
 
 export interface ItemPageParams extends DayPageParams {
     // The name of the item, if it already exists. If creating a new item, leave this blank.
@@ -248,6 +249,14 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         inputMode='decimal'
                         keyboardType='decimal-pad'
                         selectTextOnFocus={true}
+                    />
+                    <ExtensibleButton
+                        style={{marginLeft: -10, marginRight: 15}}
+                        symbol={{name: 'plus', weight: 'light'}}
+                        onPress={() => {
+                            const currentServingsNum = isNaN(Number(servingsStr)) ? 0 : Number(servingsStr);
+                            setServingsStr(`${currentServingsNum + 1}`);
+                        }}
                     />
                 </View>
                 <View style={styles.formField}>

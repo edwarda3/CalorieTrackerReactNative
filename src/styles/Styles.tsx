@@ -22,7 +22,7 @@ export const rawStyles: Record<string, ViewStyle | TextStyle | ImageStyle> = {
     formField: {
         flexDirection: 'row',
         gap: 20,
-        alignItems: 'center'
+        alignItems: 'center',
     },
     errorText: {
         color: 'red',

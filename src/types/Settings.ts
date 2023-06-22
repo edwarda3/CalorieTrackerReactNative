@@ -16,6 +16,10 @@ export interface AppSettings {
      */
     itemPageHasIntermediateDayPage: boolean;
     /**
+     * Determines if the "Add 1 Serving" context menu item will only show on today or on all days
+     */
+    addOneOnAllDays: boolean;
+    /**
      * Threshold values to color calendar days and show on day pages.
      */
     thresholds: Thresholds;
@@ -42,6 +46,7 @@ export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSetti
     timeFormat: (settings) => settings.timeFormat === '12' ? `3:00PM` : `15:00`,
     dateFormat: (settings) => formatDateWithStyle(new Date(), settings.dateFormat, true),
     itemPageHasIntermediateDayPage: (settings) => `${settings.itemPageHasIntermediateDayPage ? `Show` : `Do not show`} the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
+    addOneOnAllDays: (settings) => `"Add 1 Serving" option ${settings.addOneOnAllDays ? 'will be shown on all days' : 'will only be shown for the current day'}`,
     thresholds: (_settings) => `Threshold values to color calendar days and show on day pages. Currently not editable.`,
     enableRollover: (settings) => `"Quick Add" or "Copy to Today" ${settings.enableRollover ? 'will' : 'will not'} add to the previous day if current time is before ${formatTime(settings.rolloverPeriod, settings.timeFormat)}.`,
     promptForRollover: (settings) => `If within the rollover period, ${settings.promptForRollover ? 'prompt' : 'do not prompt'} if adding to the previous day or current day.`,
@@ -58,6 +63,7 @@ export const getDefaultSettings = (): AppSettings => ({
     timeFormat: '12',
     dateFormat: defaultFormat,
     itemPageHasIntermediateDayPage: true,
+    addOneOnAllDays: false,
     thresholds: getDefaultThresholds(),
     enableRollover: true,
     promptForRollover: true,

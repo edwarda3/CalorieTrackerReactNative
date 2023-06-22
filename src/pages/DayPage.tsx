@@ -87,7 +87,8 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                         meal={item}
                         actions={[
                             {
-                                title: 'Edit', onPress: () => {
+                                title: 'Edit',
+                                onPress: () => {
                                     navigateToItemPage(settings, props.navigation, {
                                         ...options,
                                         itemName: item.name,
@@ -96,7 +97,25 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 }
                             },
                             {
-                                title: `Copy${isToday ? '' : ' to Today'}`, onPress: () => {
+                                title: 'Add 1 Serving',
+                                hideOption: !settings.addOneOnAllDays && !isToday,
+                                onPress: () => {
+                                    DatabaseHandler.getInstance().modifyEntry(
+                                        options.dateString,
+                                        item.name,
+                                        item.time,
+                                        {
+                                            name: item.name,
+                                            time: item.time,
+                                            servings: item.servings + 1,
+                                            kcalPerServing: item.kcalPerServing,
+                                        }
+                                    ).then(refresh);
+                                }
+                            },
+                            {
+                                title: `Copy${isToday ? '' : ' to Today'}`,
+                                onPress: () => {
                                     navigateToItemPage(settings, props.navigation, {
                                         dateString: getDateString(new Date()),
                                         prefill: {
@@ -108,7 +127,9 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 }
                             },
                             {
-                                title: !!existingPreset ? 'Preset Exists' : 'Save as Preset', disabled: !!existingPreset || !presets, onPress: async () => {
+                                title: !!existingPreset ? 'Preset Exists' : 'Save as Preset',
+                                disabled: !!existingPreset || !presets,
+                                onPress: async () => {
                                     if (!presets) return;
                                     const newPresets = _.cloneDeep(presets);
                                     newPresets.push({
@@ -125,7 +146,9 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 }
                             },
                             {
-                                title: 'Delete', destructive: true, onPress: () => {
+                                title: 'Delete',
+                                destructive: true,
+                                onPress: () => {
                                     DatabaseHandler.getInstance().modifyEntry(
                                         options.dateString,
                                         item.name,
