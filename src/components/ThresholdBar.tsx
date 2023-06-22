@@ -42,7 +42,7 @@ export const ThresholdBar = (props: ThresholdBarProps) => {
     });
 
     return (
-        <View style={{ flexDirection: 'column' }}>
+        <View style={{ flexDirection: 'column'}}>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                 {_.map(differences, (difference, index) => {
                     const currentThresholdValue = Number(thresholdsInOrder[index]);

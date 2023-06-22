@@ -4,8 +4,10 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import { } from 'react-native-svg';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { getDateString, getTimeHourMinutes } from '../types/Dates';
+import { Select } from 'native-base';
+import _ from 'lodash';
 
-export type SettingsSwitchProps = SettingsBooleanSwitchProps | SettingsTimeSwitchProps;
+export type SettingsSwitchProps = SettingsBooleanSwitchProps | SettingsTimeSwitchProps | SettingsSelectSwitchProps;
 
 interface SettingsSwitchBaseProps extends ViewProps {
     label: string;
@@ -16,6 +18,7 @@ interface SettingsSwitchBaseProps extends ViewProps {
 export enum SettingsSwitchType {
     Toggle = 'toggle',
     Time = 'time',
+    Select = 'select'
 }
 
 export interface SettingsBooleanSwitchProps extends SettingsSwitchBaseProps {
@@ -26,6 +29,15 @@ export interface SettingsBooleanSwitchProps extends SettingsSwitchBaseProps {
 export interface SettingsTimeSwitchProps extends SettingsSwitchBaseProps {
     type: SettingsSwitchType.Time;
     value: string;
+    onValueChanged: (newValue: string) => void;
+}
+
+export interface SettingsSelectSwitchProps extends SettingsSwitchBaseProps {
+    type: SettingsSwitchType.Select;
+    defaultValue?: string;
+    value: string;
+    placeholder?: string;
+    options: Array<{value: string, label: string}>;
     onValueChanged: (newValue: string) => void;
 }
 
@@ -50,6 +62,28 @@ export const SettingsSwitch = (props: SettingsSwitchProps) => {
                     mode='time'
                     locale='en'
                 />
+            </View>
+        ),
+        [SettingsSwitchType.Select]: (props: SettingsSelectSwitchProps) => (
+            <View>
+                <Select
+                    defaultValue={props.defaultValue}
+                    selectedValue={props.value}
+                    onValueChange={(text) => props.onValueChanged(text)}
+                    accessibilityLabel={props.accessibilityLabel}
+                    placeholder={props.placeholder}
+                    variant='unstyled'
+                    {...{
+                        textAlign: 'right',
+                        fontSize: 16,
+                        minWidth: 200,
+                        borderWidth: 0,
+                    }}
+                >
+                    {_.map(props.options, (option) => (
+                        <Select.Item key={option.value} label={option.label} value={option.value} />
+                    ))}
+                </Select>
             </View>
         )
     } as Record<SettingsSwitchType, (props: SettingsSwitchProps) => JSX.Element>)[props.type](props);

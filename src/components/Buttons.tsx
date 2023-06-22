@@ -9,7 +9,8 @@ const bigButtonStyle: StyleProp<TextStyle> = {
     textAlign: 'center'
 };
 
-export type ExtensibleButtonProps = ButtonProps & TextProps & {
+export type ExtensibleButtonProps = Omit<ButtonProps, 'title'> & TextProps & {
+    title?: string;
     symbol?: {
         name?: string;
         scale?: SymbolScale;
@@ -23,7 +24,7 @@ export const BigButton = ({ onPress, title, symbol }: Pick<ExtensibleButtonProps
 );
 
 export const ExtensibleButton = ({ onPress, title, style, symbol }: ExtensibleButtonProps) => (
-    <Pressable onPress={onPress}>
+    <Pressable onPress={onPress} style={symbol && !title ? style : {}}>
         <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
             {symbol && symbol.name && <SFSymbol
                 name={symbol.name}
@@ -35,8 +36,7 @@ export const ExtensibleButton = ({ onPress, title, style, symbol }: ExtensibleBu
                 multicolor={false}
                 style={{ width: 32, height: 32 }}
             />}
-            <Text style={style}>
-                {title}</Text>
+            {title && <Text style={style}>{title}</Text>}
         </View>
     </Pressable>
 );

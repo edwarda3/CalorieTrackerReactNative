@@ -4,7 +4,6 @@ import { CalendarPage } from '../pages/CalendarPage';
 import { DayPage, DayPageParams } from '../pages/DayPage';
 import { ItemPage, ItemPageParams } from '../pages/ItemPage';
 import { PresetsPage } from '../pages/PresetsPage';
-import { ProfilePage } from '../pages/ProfilePage';
 import { SearchByMeal } from '../pages/SearchByMeal';
 import { SettingsPage } from "../pages/SettingsPage";
 import { AppSettings } from "./Settings";
@@ -14,7 +13,6 @@ import { Alert } from "react-native";
 
 export enum NavigationPages {
     HOME = 'home',
-    PROFILE = 'profile',
     SETTINGS = 'settings',
     CALENDAR = 'calendar',
     DAY = 'day',
@@ -55,12 +53,6 @@ export const pageDetails: Record<NavigationPages, PageDetail> = {
         name: NavigationPages.HOME,
         title: 'Calorie Tracker',
         component: HomePage
-    },
-    [NavigationPages.PROFILE]: {
-        name: NavigationPages.PROFILE,
-        title: 'Profile',
-        symbolName: 'person.fill',
-        component: ProfilePage
     },
     [NavigationPages.SETTINGS]: {
         name: NavigationPages.SETTINGS,

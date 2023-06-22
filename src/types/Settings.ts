@@ -1,10 +1,14 @@
-import { formatTime } from "./Dates";
+import { DateFormat, defaultFormat, formatDateWithStyle, formatTime } from "./Dates";
 
 export interface AppSettings {
     /**
      * Determines default time display between 12 and 24 hour formats
      */
     timeFormat: '12'|'24';
+    /**
+     * Determines default time display between 12 and 24 hour formats
+     */
+    dateFormat: DateFormat;
     /**
      * When navigating directly to the item page (not from the day page, such as from home or search),
      * determines whether to insert a day page inbetween the source page and the item page.
@@ -36,6 +40,7 @@ export interface AppSettings {
 
 export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSettings) => string> = {
     timeFormat: (settings) => settings.timeFormat === '12' ? `3:00PM` : `15:00`,
+    dateFormat: (settings) => formatDateWithStyle(new Date(), settings.dateFormat, true),
     itemPageHasIntermediateDayPage: (settings) => `${settings.itemPageHasIntermediateDayPage ? `Show` : `Do not show`} the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
     thresholds: (_settings) => `Threshold values to color calendar days and show on day pages. Currently not editable.`,
     enableRollover: (settings) => `"Quick Add" or "Copy to Today" ${settings.enableRollover ? 'will' : 'will not'} add to the previous day if current time is before ${formatTime(settings.rolloverPeriod, settings.timeFormat)}.`,
@@ -51,6 +56,7 @@ export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSetti
 
 export const getDefaultSettings = (): AppSettings => ({
     timeFormat: '12',
+    dateFormat: defaultFormat,
     itemPageHasIntermediateDayPage: true,
     thresholds: getDefaultThresholds(),
     enableRollover: true,

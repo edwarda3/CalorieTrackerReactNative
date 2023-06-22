@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, FlatList, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import _ from 'lodash';
-import { getDateString } from '../types/Dates';
+import { formatDate, getDateString } from '../types/Dates';
 import { MealData, MealPreset } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
@@ -50,7 +50,8 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
 
     useEffect(() => {
         props.navigation.setOptions({
-            title: options.dateString
+            title: formatDate(new Date(options.dateString)),
+            headerRight: () => <Button title='Add' onPress={() => props.navigation.navigate(NavigationPages.ITEM, options)} />
         });
         refresh();
     }, []);
@@ -73,7 +74,6 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                 <Pressable style={{ flexGrow: 1 }} onPress={refresh}>
                     <Text style={styles.title}>Total Calories: {dayTotalKcal}</Text>
                 </Pressable>
-                <Button title='Add' onPress={() => props.navigation.navigate(NavigationPages.ITEM, options)} />
             </View>
             {dayTotalKcal > 0 && <ThresholdBar emphasizeKcal={dayTotalKcal} />}
             <FlatList
