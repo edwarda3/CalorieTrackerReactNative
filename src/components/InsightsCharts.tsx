@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { MonthData } from '../types/Model';
-import { Pressable, Text, View, ViewStyle, processColor } from 'react-native';
+import { Pressable, StyleSheet, Text, View, ViewStyle, processColor } from 'react-native';
 import { Chart, Line, Area, HorizontalAxis, VerticalAxis, ChartDataPoint } from 'react-native-responsive-linechart'
 import _ from 'lodash';
 import { sortMealsByTime } from '../data/processing';
 import { timeToFloat } from '../types/Dates';
-import { YearMonthStats } from './YearMonthStats';
+import { AverageType, YearMonthStats } from './YearMonthStats';
 import { styles } from '../styles/Styles';
-import { BarChart, BarData, BarDataset, BarValue } from 'react-native-charts-wrapper';
+import { BarChart, BarChartProps, BarData, BarDataset, BarValue } from 'react-native-charts-wrapper';
 import { RowButtonSelector } from './RowButtonSelector';
 import { getColorPerCalories } from './ThresholdBar';
 import { Thresholds } from '../types/Settings';
@@ -22,14 +22,17 @@ type InsightDisplayMode = 'byday' | 'byhour' | 'textstats';
 
 export const InsightsChart = (props: InsightsChartProps) => {
     const [showing, setShowing] = useState<InsightDisplayMode>('byday');
+    const [avgType, setAvgType] = useState<AverageType>('median');
 
     const roundToNearest = (precise: number, roundInterval: number): number => {
         const toNearestInterval = roundInterval - (precise % roundInterval);
         return precise + toNearestInterval;
     }
 
+    const graphHeight = 300;
+
     const displayByMode: Record<InsightDisplayMode, () => JSX.Element> = {
-        'textstats': () => <YearMonthStats monthData={props.monthData} />,
+        'textstats': () => <YearMonthStats monthData={props.monthData} averageType={avgType} onAverageTypeChange={setAvgType} />,
         'byday': () => {
             const { data, xMax, xMin, yMax, yMin } = getChartDataKcalsPerDay(props.monthData ?? {});
             if (_.isEmpty(data)) {
@@ -37,15 +40,14 @@ export const InsightsChart = (props: InsightsChartProps) => {
             }
             const yTickSize = yMax > 3600 ? 800 : 400;
             const roundedYMax = roundToNearest(yMax, yTickSize);
+            const average = avgType === 'mean' ?
+                _.sum(data.map(({ y }) => (y ?? 0) as number)) / data.length :
+                getMedian(data.map(({ y }) => (y ?? 0) as number));
             return <BarChart
-                style={{ height: 250, width: 400, padding: 10, ...props.style ?? {} }}
-                visibleRange={{
-                    x: {min: xMin, max: xMax},
-                    y: {left: {min: yMin, max: roundedYMax}}
-                }}
                 highlightFullBarEnabled={false}
-                legend={{enabled: false}}
-                marker={{enabled: false}}
+                highlightPerTapEnabled={false}
+                legend={{ enabled: false }}
+                marker={{ enabled: false }}
                 doubleTapToZoomEnabled={false}
                 pinchZoom={false}
                 scaleEnabled={false}
@@ -53,25 +55,41 @@ export const InsightsChart = (props: InsightsChartProps) => {
                 drawGridBackground={false}
                 drawBorders={false}
                 borderWidth={0}
+                style={{ height: graphHeight, width: 400, padding: 10, ...props.style ?? {} }}
+                visibleRange={{
+                    x: { min: xMin, max: xMax },
+                    y: { left: { min: yMin, max: roundedYMax } }
+                }}
                 xAxis={{
                     enabled: true,
                     position: 'TOP',
                     drawAxisLine: false,
                     textColor: processColor('black'),
                     drawGridLines: true,
+                    gridColor: processColor('#808080'),
                     gridDashedLine: {
                         lineLength: 1,
                         spaceLength: 3,
                         phase: 1,
                     },
                     axisMaximum: xMax,
-                    labelCount: Math.floor(data.length / 2)
+                    labelCount: Math.floor(xMax / 2),
                 }}
                 yAxis={{
                     left: {
-                        enabled: false,
+                        enabled: true,
+                        drawLabels: false,
                         drawGridLines: false,
                         drawAxisLine: false,
+                        limitLines: [
+                            {
+                                limit: average,
+                                valueTextColor: processColor('black'),
+                                lineWidth: StyleSheet.hairlineWidth,
+                                lineColor: processColor('black'),
+                            }
+                        ],
+                        drawLimitLinesBehindData: true
                     },
                     right: {
                         enabled: false,
@@ -86,7 +104,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
                             values: data,
                             config: {
                                 colors: props.thresholds ? data.map(({ y }) => {
-                                    return processColor(getColorPerCalories(props.thresholds!, y as number))
+                                    return processColor(getColorPerCalories(props.thresholds!, y as number, 0, .8))
                                 }) : undefined,
                                 valueTextColor: processColor('darkslategrey'),
                                 valueTextSize: 5,
@@ -103,7 +121,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
             const yTickSize = 200;
             const roundedYMax = roundToNearest(yMax, yTickSize);
             return <NoTypeChart
-                style={{ height: 400, width: 400, ...props.style ?? {} }}
+                style={{ height: graphHeight, width: 400, ...props.style ?? {} }}
                 padding={{ left: 60, bottom: 20, right: 20, top: 20 }}
                 xDomain={{ min: Math.floor(xMin), max: xMax }}
                 yDomain={{ min: yMin, max: roundedYMax }}
@@ -145,7 +163,30 @@ export const InsightsChart = (props: InsightsChartProps) => {
     )
 }
 
-export const getChartDataKcalsPerDay = (monthData: MonthData) => {
+export const getMedian = (dataValues: number[]): number => {
+    const sorted = dataValues.sort();
+    if (dataValues.length === 0) return 0;
+    if (sorted.length % 2 === 1) {
+        // odd # of elements we can just take the middle
+        // ex: 5 -divide-> 2.5 -floor-> 2 = 3rd element.
+        return sorted[Math.floor(sorted.length / 2)];
+    } else {
+        // sorted is at least length 2 (0 and 1 taken care of above).
+        const leftMiddleIndex = Math.floor(sorted.length / 2) - 1;
+        const rightMiddleIndex = Math.floor(sorted.length / 2) - 1;
+        return (sorted[leftMiddleIndex] + sorted[rightMiddleIndex]) / 2;
+    }
+}
+
+interface ChartData<T> {
+    data: T[],
+    xMax: number;
+    xMin: number;
+    yMax: number;
+    yMin: number;
+}
+
+export const getChartDataKcalsPerDay = (monthData: MonthData): ChartData<BarValue> => {
     const kcalsOverDays: BarValue[] = [];
     const keysInOrder = _.sortBy(Object.keys(monthData ?? {}).map((key) => Number(key)));
     let yMax = 0;
@@ -163,7 +204,7 @@ export const getChartDataKcalsPerDay = (monthData: MonthData) => {
     };
 }
 
-export const getChartDataMealsByHour = (monthData: MonthData) => {
+export const getChartDataMealsByHour = (monthData: MonthData): ChartData<ChartDataPoint[]> => {
     let earliestTime = 24;
     let latestTime = 0;
     let highestSingleMeal = 0;

@@ -19,6 +19,8 @@ import { formatDate, getDateString, getDateStringParts, getYearMonthIndex } from
 import Toast from 'react-native-toast-message';
 import { ScrollView } from 'native-base';
 import { DaySearchResult, SearchForMealsOptions, searchForMeals } from '../data/search';
+import { getColorPerCalories } from '../components/ThresholdBar';
+import { SFSymbol } from 'react-native-sfsymbols';
 
 export const SearchByMeal = (props: NavigatedScreenProps) => {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
@@ -107,6 +109,14 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
         >
             <View style={{ padding: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
+                    {dataStore && <SFSymbol 
+                    style={{paddingLeft: 10}}
+                        name='square.fill'
+                        size={12}
+                        scale='large'
+                        color={getColorPerCalories(dataStore.settings.thresholds, daySearchTotalKcal)}
+                        weight='regular'
+                    />}
                     <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(new Date(dateString))}</Text>
                     <Text style={styles.subLabel}>{matchedItemTotalKcal} of {daySearchTotalKcal}kcal ({Math.round(100 * (matchedItemTotalKcal / daySearchTotalKcal))}% of day)</Text>
                 </View>

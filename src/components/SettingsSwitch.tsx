@@ -90,7 +90,7 @@ export const SettingsSwitch = (props: SettingsSwitchProps) => {
 
 
     return (
-        <View style={{ flexDirection: 'column', gap: 2, padding: 10 }}>
+        <View style={{ flexDirection: 'column', gap: 2, padding: 10, flexGrow: 1, flexShrink: 1 }}>
             <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
                 <Text style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}>{props.label}</Text>
                 {getValueEditorComponent()}
