@@ -47,24 +47,24 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
         }, [])
     );
 
-    const performSearch = (options?: Partial<SearchForMealsOptions>, replace: boolean = false) => {
+    const performSearch = (searchOptions?: Partial<SearchForMealsOptions>, updateOptions?: { ignoreDate?: boolean; replace?: boolean }) => {
         if (dataStore?.database) {
             const searchOptionsByState: SearchForMealsOptions = {
                 nameFilter: nameFilter,
                 minimumKcalFilter: isNaN(Number(totalKcalFilterStr)) ? 0 : Number(totalKcalFilterStr),
-                startFromDateString: replace ? null : dateStringCursor,
+                startFromDateString: updateOptions?.replace ? null : dateStringCursor,
                 maxResults: 100,
             };
-            if (showDateFilters) {
+            if (showDateFilters && !updateOptions?.ignoreDate) {
                 searchOptionsByState.minDate = minDate;
                 searchOptionsByState.maxDate = maxDate;
             }
             const { searchResult, searchFoundCount, cursor } = searchForMeals(dataStore.database, {
                 ...searchOptionsByState,
-                ...(options ?? {})
+                ...(searchOptions ?? {})
             });
-            setFoundResult(replace ? searchResult : [...foundResult, ...searchResult]);
-            setTotalFound(replace ? searchFoundCount : totalFound + searchFoundCount)
+            setFoundResult(updateOptions?.replace ? searchResult : [...foundResult, ...searchResult]);
+            setTotalFound(updateOptions?.replace ? searchFoundCount : totalFound + searchFoundCount)
             setDateStringCursor(cursor);
         }
     }
@@ -86,7 +86,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                 setTotalKcalFilterStr(kcals ?? '')
             }
             setDateStringCursor(null);
-            performSearch(toUpdate, true);
+            performSearch(toUpdate, { replace: true });
         }
     }
 
@@ -199,7 +199,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                 <ExtensibleButton title='Filters' style={bespokeStyle('subLabel', { padding: 20 })} onPress={() => {
                     setShowDateFilters(!showDateFilters);
                     setDateStringCursor(null);
-                    performSearch(showDateFilters ? { minDate, maxDate } : {}, true);
+                    performSearch(!showDateFilters ? { minDate, maxDate } : {}, { ignoreDate: showDateFilters, replace: true });
                 }} />
             </View>
             <Collapsible collapsed={!showDateFilters} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, justifyContent: 'center' }}>
@@ -209,7 +209,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         if (type === 'set' && date) {
                             setMinDate(date);
                             setDateStringCursor(null);
-                            performSearch({ minDate: date }, true);
+                            performSearch({ minDate: date }, { replace: true });
                         }
                     }}
                     value={minDate}
@@ -222,7 +222,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         if (type === 'set' && date) {
                             setMaxDate(date);
                             setDateStringCursor(null);
-                            performSearch({ maxDate: date }, true);
+                            performSearch({ maxDate: date }, { replace: true });
                         }
                     }}
                     value={maxDate}

@@ -8,7 +8,7 @@ import { SearchByMeal } from '../pages/SearchByMeal';
 import { SettingsPage } from "../pages/SettingsPage";
 import { AppSettings } from "./Settings";
 import _ from "lodash";
-import { dayBefore, formatTime, getDateString, getTimeHourMinutes, timeToFloat } from "./Dates";
+import { dayBefore, formatDateWithStyle, formatTime, getDateString, getTimeHourMinutes, timeToFloat } from "./Dates";
 import { Alert } from "react-native";
 
 export enum NavigationPages {
@@ -111,17 +111,21 @@ export function navigateToItemPage(appSettings: AppSettings, navigation: Navigat
     const rolloverLimit = timeToFloat(appSettings.rolloverPeriod);
     if (appSettings.enableRollover && currentTime <= rolloverLimit) {
         const yesterday = getDateString(dayBefore(new Date()));
+        const yesterdayDate = new Date(yesterday);
+        const yesterdayString = formatDateWithStyle(yesterdayDate, appSettings.dateFormat, true);
+        const today = new Date(getDateString(new Date()));
+        const todayString = formatDateWithStyle(today, appSettings.dateFormat, true);
         if (appSettings.promptForRollover) {
             Alert.alert(
                 'Rollover',
-                `Current time is before ${formatTime(appSettings.rolloverPeriod, appSettings.timeFormat)}, do you want to add to ${yesterday}?`,
+                `Current time is before ${formatTime(appSettings.rolloverPeriod, appSettings.timeFormat)}, do you want to add to ${yesterdayString}?`,
                 [
                     {
-                        text: `Add to Yesterday (${yesterday})`,
+                        text: `Add to Yesterday (${yesterdayString})`,
                         onPress: () => navigateWithDay(yesterday, '23:59'),
                     },
                     {
-                        text: `Add to Today (${getDateString(new Date())})`,
+                        text: `Add to Today (${todayString})`,
                         onPress: () => navigateWithDay(),
                     },
                     {

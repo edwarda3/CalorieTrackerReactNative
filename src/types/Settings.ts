@@ -1,4 +1,4 @@
-import { DateFormat, defaultFormat, formatDateWithStyle, formatTime } from "./Dates";
+import { DateFormat, defaultFormat, formatDateWithStyle, formatTime, getDateString } from "./Dates";
 
 export interface AppSettings {
     /**
@@ -44,19 +44,13 @@ export interface AppSettings {
 
 export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSettings) => string> = {
     timeFormat: (settings) => settings.timeFormat === '12' ? `3:00PM` : `15:00`,
-    dateFormat: (settings) => formatDateWithStyle(new Date(), settings.dateFormat, true),
+    dateFormat: (settings) => formatDateWithStyle(new Date(getDateString(new Date())), settings.dateFormat, true),
     itemPageHasIntermediateDayPage: (settings) => `${settings.itemPageHasIntermediateDayPage ? `Show` : `Do not show`} the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
     addOneOnAllDays: (settings) => `"Add 1 Serving" option ${settings.addOneOnAllDays ? 'will be shown on all days' : 'will only be shown for the current day'}`,
     thresholds: (_settings) => `Threshold values to color calendar days and show on day pages. Currently not editable.`,
     enableRollover: (settings) => `"Quick Add" or "Copy to Today" ${settings.enableRollover ? 'will' : 'will not'} add to the previous day if current time is before ${formatTime(settings.rolloverPeriod, settings.timeFormat)}.`,
     promptForRollover: (settings) => `If within the rollover period, ${settings.promptForRollover ? 'prompt' : 'do not prompt'} if adding to the previous day or current day.`,
     rolloverPeriod: (settings) => `Rollover ${settings.promptForRollover ? 'is prompted' : 'happens'} when current time is before ${formatTime(settings.rolloverPeriod, settings.timeFormat)}`,
-    // timeFormat: `Enable to show times in 12-hour format.\n12-hour: 3:00PM\n24-hour: 15:00`,
-    // itemPageHasIntermediateDayPage: `Enable this to show the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
-    // thresholds: `Threshold values to color calendar days and show on day pages. Currently not editable.`,
-    // enableRollover: `Enable this to allow "Quick Add" or "Copy to Today" to add to the previous day if before the rollover value.`,
-    // promptForRollover: ``,
-    // rolloverPeriod: ``,
 };
 
 export const getDefaultSettings = (): AppSettings => ({
