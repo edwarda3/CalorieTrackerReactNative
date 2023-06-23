@@ -10,12 +10,10 @@ import { MarkedDates } from 'react-native-calendars/src/types';
 import { DatabaseHandler } from '../data/database';
 import { getTotalCaloriesInADay } from './DayPage';
 import { useFocusEffect } from '@react-navigation/native';
-import Collapsible from 'react-native-collapsible';
 import { bespokeStyle, styles } from '../styles/Styles';
 import ContextMenu from 'react-native-context-menu-view';
 import { ThresholdBar, getColorPerCalories } from '../components/ThresholdBar';
 import { InsightsChart } from '../components/InsightsCharts';
-import { YearMonthStats } from '../components/YearMonthStats';
 
 export const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
     const year = ymKey.slice(0, 4);
@@ -151,9 +149,11 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                     markedDates={markedDates}
                 />
                 {database[currentYearMonth] && (
-                    // <ScrollView style={{ flexDirection: 'column' }}>
-                    // </ScrollView>
-                    <InsightsChart monthData={database[currentYearMonth]} thresholds={settings.thresholds} />
+                    <InsightsChart
+                        yearMonthKey={currentYearMonth}
+                        monthData={database[currentYearMonth]}
+                        thresholds={settings.thresholds}
+                    />
                 )}
             </ScrollView>
         </SafeAreaView>

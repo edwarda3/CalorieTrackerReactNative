@@ -4,10 +4,12 @@ import { Pressable, Text, View } from 'react-native';
 import _ from 'lodash';
 import { getMedian } from './InsightsCharts';
 import { SettingsSwitch, SettingsSwitchType } from './SettingsSwitch';
+import { getDateString } from '../types/Dates';
 
 export type AverageType = 'mean' | 'median';
 
 export interface YearMonthStatsProps {
+    yearMonthKey: string;
     monthData?: MonthData;
     averageType: AverageType;
     onAverageTypeChange: (type: AverageType) => void;
@@ -16,10 +18,17 @@ export interface YearMonthStatsProps {
 export const YearMonthStats = (props: YearMonthStatsProps) => {
     let totalDays = 0;
     const totalPerDay: number[] = [];
-    const totalKcals = _.reduce(props.monthData ?? {}, (acc, dayData) => {
+    let minKcals = 999999;
+    let maxKcals = 0;
+    const today = getDateString(new Date());
+    const totalKcals = _.reduce(props.monthData ?? {}, (acc, dayData, day) => {
         if (!_.isEmpty(dayData)) totalDays += 1;
         const allKcals = _.sum(_.map(dayData, (meal) => meal.kcalPerServing * meal.servings));
         totalPerDay.push(allKcals);
+        if (today !== `${props.yearMonthKey}-${day}` && allKcals < minKcals) {
+            minKcals = allKcals;
+        }
+        maxKcals = Math.max(allKcals, maxKcals)
         return acc + allKcals;
     }, 0);
     const avgKcalsPerDay = totalDays > 0 ? Math.floor(totalKcals / totalDays) : 0;
@@ -34,6 +43,8 @@ export const YearMonthStats = (props: YearMonthStatsProps) => {
                 label={props.averageType === 'mean' ? 'Average Kcals' : 'Median Kcals'}
                 value={props.averageType === 'mean' ? avgKcalsPerDay.toLocaleString() : medianKcals.toLocaleString()}
             />
+            <InfoDisplay label='Max Kcals in a day' value={minKcals.toLocaleString()} />
+            <InfoDisplay label='Min Kcals in a day' value={maxKcals.toLocaleString()} />
         </View>
     );
 }

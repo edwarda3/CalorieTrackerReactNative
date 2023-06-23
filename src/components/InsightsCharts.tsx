@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
 import { MonthData } from '../types/Model';
-import { Pressable, StyleSheet, Text, View, ViewStyle, processColor } from 'react-native';
-import { Chart, Line, Area, HorizontalAxis, VerticalAxis, ChartDataPoint } from 'react-native-responsive-linechart'
+import { Dimensions, StyleSheet, Text, View, ViewStyle, processColor } from 'react-native';
+import { Chart, Area, HorizontalAxis, VerticalAxis, ChartDataPoint } from 'react-native-responsive-linechart'
 import _ from 'lodash';
 import { sortMealsByTime } from '../data/processing';
 import { timeToFloat } from '../types/Dates';
 import { AverageType, YearMonthStats } from './YearMonthStats';
 import { styles } from '../styles/Styles';
-import { BarChart, BarChartProps, BarData, BarDataset, BarValue } from 'react-native-charts-wrapper';
+import { BarChart, BarValue } from 'react-native-charts-wrapper';
 import { RowButtonSelector } from './RowButtonSelector';
 import { getColorPerCalories } from './ThresholdBar';
 import { Thresholds } from '../types/Settings';
 
 export interface InsightsChartProps {
+    yearMonthKey: string;
     monthData?: MonthData;
     thresholds?: Thresholds;
     style?: ViewStyle;
@@ -32,7 +33,12 @@ export const InsightsChart = (props: InsightsChartProps) => {
     const graphHeight = 300;
 
     const displayByMode: Record<InsightDisplayMode, () => JSX.Element> = {
-        'textstats': () => <YearMonthStats monthData={props.monthData} averageType={avgType} onAverageTypeChange={setAvgType} />,
+        'textstats': () => <YearMonthStats
+            yearMonthKey={props.yearMonthKey}
+            monthData={props.monthData}
+            averageType={avgType}
+            onAverageTypeChange={setAvgType}
+        />,
         'byday': () => {
             const { data, xMax, xMin, yMax, yMin } = getChartDataKcalsPerDay(props.monthData ?? {});
             if (_.isEmpty(data)) {
@@ -55,7 +61,12 @@ export const InsightsChart = (props: InsightsChartProps) => {
                 drawGridBackground={false}
                 drawBorders={false}
                 borderWidth={0}
-                style={{ height: graphHeight, width: 400, padding: 10, ...props.style ?? {} }}
+                style={{
+                    height: graphHeight,
+                    width: Dimensions.get('window').width - 10,
+                    padding: 10,
+                    ...props.style ?? {}
+                }}
                 visibleRange={{
                     x: { min: xMin, max: xMax },
                     y: { left: { min: yMin, max: roundedYMax } }
@@ -78,8 +89,10 @@ export const InsightsChart = (props: InsightsChartProps) => {
                 yAxis={{
                     left: {
                         enabled: true,
-                        drawLabels: false,
-                        drawGridLines: false,
+                        drawLabels: true,
+                        textColor: processColor('black'),
+                        drawGridLines: true,
+                        gridDashedLine: { lineLength: 1, spaceLength: 3 },
                         drawAxisLine: false,
                         limitLines: [
                             {
@@ -89,7 +102,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
                                 lineColor: processColor('black'),
                             }
                         ],
-                        drawLimitLinesBehindData: true
+                        drawLimitLinesBehindData: true,
                     },
                     right: {
                         enabled: false,
@@ -120,8 +133,15 @@ export const InsightsChart = (props: InsightsChartProps) => {
             const mealTimeRange = Math.abs(xMax - xMin) + 1;
             const yTickSize = 200;
             const roundedYMax = roundToNearest(yMax, yTickSize);
+
+            // BUG in Chart library causes Children to be invalid, wtf
+            const NoTypeChart = Chart as any;
             return <NoTypeChart
-                style={{ height: graphHeight, width: 400, ...props.style ?? {} }}
+                style={{
+                    height: graphHeight,
+                    width: Dimensions.get('window').width,
+                    ...props.style ?? {}
+                }}
                 padding={{ left: 60, bottom: 20, right: 20, top: 20 }}
                 xDomain={{ min: Math.floor(xMin), max: xMax }}
                 yDomain={{ min: yMin, max: roundedYMax }}
@@ -145,8 +165,6 @@ export const InsightsChart = (props: InsightsChartProps) => {
         }
     }
 
-    // BUG in Chart library causes Children to be invalid, wtf
-    const NoTypeChart = Chart as any;
     return (
         <View style={{ alignItems: 'center' }}>
             <RowButtonSelector<InsightDisplayMode>
