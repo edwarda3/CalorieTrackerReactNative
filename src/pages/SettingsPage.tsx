@@ -125,8 +125,7 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
 
     const appSettings = dataStore?.settings ?? getDefaultSettings();
 
-    // effectively ignore time so that we can ignore timezone here.
-    const todayUTC = new Date(getDateString(new Date()));
+    const today = getDateString(new Date());
 
     return (
         <SafeAreaView style={{
@@ -151,15 +150,15 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
                         persistAppSettings({ dateFormat: format as DateFormat })
                     }}
                     options={[
-                        { value: 'Month DD, YYYY', label: formatDateWithStyle(todayUTC, 'Month DD, YYYY', true) },
-                        { value: 'DD Month YYYY', label: formatDateWithStyle(todayUTC, 'DD Month YYYY', true) },
-                        { value: 'YYYY Month DD', label: formatDateWithStyle(todayUTC, 'YYYY Month DD', true) },
-                        { value: 'DD-MM-YYYY', label: formatDateWithStyle(todayUTC, 'DD-MM-YYYY', true) },
-                        { value: 'DD/MM/YYYY', label: formatDateWithStyle(todayUTC, 'DD/MM/YYYY', true) },
-                        { value: 'MM-DD-YYYY', label: formatDateWithStyle(todayUTC, 'MM-DD-YYYY', true) },
-                        { value: 'MM/DD/YYYY', label: formatDateWithStyle(todayUTC, 'MM/DD/YYYY', true) },
-                        { value: 'YYYY-MM-DD', label: formatDateWithStyle(todayUTC, 'YYYY-MM-DD', true) },
-                        { value: 'YYYY/MM/DD', label: formatDateWithStyle(todayUTC, 'YYYY/MM/DD', true) },
+                        { value: 'Month DD, YYYY', label: formatDateWithStyle(today, 'Month DD, YYYY', true) },
+                        { value: 'DD Month YYYY', label: formatDateWithStyle(today, 'DD Month YYYY', true) },
+                        { value: 'YYYY Month DD', label: formatDateWithStyle(today, 'YYYY Month DD', true) },
+                        { value: 'DD-MM-YYYY', label: formatDateWithStyle(today, 'DD-MM-YYYY', true) },
+                        { value: 'DD/MM/YYYY', label: formatDateWithStyle(today, 'DD/MM/YYYY', true) },
+                        { value: 'MM-DD-YYYY', label: formatDateWithStyle(today, 'MM-DD-YYYY', true) },
+                        { value: 'MM/DD/YYYY', label: formatDateWithStyle(today, 'MM/DD/YYYY', true) },
+                        { value: 'YYYY-MM-DD', label: formatDateWithStyle(today, 'YYYY-MM-DD', true) },
+                        { value: 'YYYY/MM/DD', label: formatDateWithStyle(today, 'YYYY/MM/DD', true) },
                     ]}
                 />
                 <HorizontalLine />

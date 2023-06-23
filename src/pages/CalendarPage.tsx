@@ -3,7 +3,7 @@ import * as _ from 'lodash';
 import { Button, Pressable, SafeAreaView, ScrollView, Text, View } from 'react-native';
 import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
 import { Calendar } from 'react-native-calendars';
-import { formatDate, formatToAmPm, getDateStringParts, getYearMonthIndex, monthStrings } from '../types/Dates';
+import { formatDate, formatToAmPm, getDateString, getDateStringParts, getYearMonthIndex, monthStrings } from '../types/Dates';
 import { Database } from '../types/Model';
 import { AppSettings } from '../types/Settings';
 import { MarkedDates } from 'react-native-calendars/src/types';
@@ -91,7 +91,7 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                     }}
                     renderHeader={(date: string) => {
                         return <View style={{ flexDirection: 'column' }}>
-                            <Text style={styles.label}>{formatDate(new Date(date), false)}</Text>
+                            <Text style={styles.label}>{formatDate(date, false)}</Text>
                         </View>
                     }}
                     dayComponent={(dayProps) => {
@@ -113,7 +113,7 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                                     // Basically an expandable details section using the actions submenus
                                     actions={database &&
                                         [
-                                            { title: `${formatDate(new Date(dayProps.date.dateString))} - ${dayKcals}kcals` },
+                                            { title: `${formatDate(dayProps.date.dateString)} - ${dayKcals}kcals` },
                                             ..._.map(databaseInfo ?? [], (mealData) => ({
                                                 title: `[${formatToAmPm(mealData.time)}] ${_.startCase(mealData.name)}`,
                                                 subtitle: `(${mealData.servings} × ${mealData.kcalPerServing}kcal) → ${mealData.kcalPerServing * mealData.servings}kcal`,

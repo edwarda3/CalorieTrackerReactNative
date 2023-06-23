@@ -50,7 +50,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
 
     useEffect(() => {
         props.navigation.setOptions({
-            title: formatDate(new Date(options.dateString)),
+            title: formatDate(options.dateString),
             headerRight: () => <Button title='Add' onPress={() => props.navigation.navigate(NavigationPages.ITEM, options)} />
         });
         refresh();

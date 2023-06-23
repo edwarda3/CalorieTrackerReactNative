@@ -16,6 +16,7 @@
     "@react-navigation/native-stack": "^6.9.12",
     "@types/lodash": "^4.14.195",
     "@types/react-native-charts-wrapper": "^0.5.5",
+    "dayjs": "^1.11.8",
     "lodash": "^4.17.21",
     "native-base": "^3.4.28",
     "react": "18.2.0",

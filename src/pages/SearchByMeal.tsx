@@ -117,7 +117,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         color={getColorPerCalories(dataStore.settings.thresholds, daySearchTotalKcal)}
                         weight='regular'
                     />}
-                    <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(new Date(dateString))}</Text>
+                    <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(dateString)}</Text>
                     <Text style={styles.subLabel}>{matchedItemTotalKcal} of {daySearchTotalKcal}kcal ({Math.round(100 * (matchedItemTotalKcal / daySearchTotalKcal))}% of day)</Text>
                 </View>
                 {_.map(dayResult, (mealData) => {

@@ -1,4 +1,5 @@
 import { DatabaseHandler } from "../data/database";
+import dayjs from 'dayjs';
 
 export const monthStrings = [
     'January',
@@ -89,24 +90,25 @@ export type DateFormat = 'Month DD, YYYY'
 const getLongMonth = (date: Date) => date.toLocaleString('en-US', { month: 'long' });
 
 export const defaultFormat: DateFormat = 'Month DD, YYYY';
-const formatter: Record<DateFormat, (date: Date, showDate: boolean) => string> = {
-    'Month DD, YYYY': (date, showDate) => `${getLongMonth(date)}${showDate ? ` ${date.getUTCDate()}` : ''}, ${date.getFullYear()}`,
-    'DD Month YYYY': (date, showDate) => `${showDate ? `${date.getUTCDate()} ` : ''}${getLongMonth(date)} ${date.getFullYear()}`,
-    'YYYY Month DD': (date, showDate) => `${date.getFullYear()} ${getLongMonth(date)}${showDate ? ` ${date.getUTCDate()}` : ''}`,
-    'DD-MM-YYYY': (date, showDate) => `${showDate ? `${date.getUTCDate()}-` : ''}${date.getMonth() + 1}-${date.getFullYear()}`,
-    'DD/MM/YYYY': (date, showDate) => `${showDate ? `${date.getUTCDate()}/` : ''}${date.getMonth() + 1}/${date.getFullYear()}`,
-    'MM-DD-YYYY': (date, showDate) => `${date.getMonth() + 1}-${showDate ? `${date.getUTCDate().toString().padStart(2, '0')}-` : ''}${date.getFullYear()}`,
-    'MM/DD/YYYY': (date, showDate) => `${date.getMonth() + 1}/${showDate ? `${date.getUTCDate().toString().padStart(2, '0')}/` : ''}${date.getFullYear()}`,
-    'YYYY-MM-DD': (date, showDate) => `${date.getFullYear()}-${date.getMonth() + 1}${showDate ? `-${date.getUTCDate().toString().padStart(2, '0')}` : ''}`,
-    'YYYY/MM/DD': (date, showDate) => `${date.getFullYear()}/${date.getMonth() + 1}${showDate ? `/${date.getUTCDate().toString().padStart(2, '0')}` : ''}`,
+const formatter: Record<DateFormat, (dateString: string, showDate: boolean) => string> = {
+    // 'Month DD, YYYY': (date, showDate) => dayjs(date).toString(),
+    'Month DD, YYYY': (date, showDate) => dayjs(date).format(showDate ? 'MMMM D, YYYY' : 'MMMM, YYYY'),
+    'DD Month YYYY': (date, showDate) => dayjs(date).format(showDate ? 'D MMMM YYYY' : 'MMMM YYYY'),
+    'YYYY Month DD': (date, showDate) => dayjs(date).format(showDate ? 'YYYY MMMM D' : 'YYYY MMMM'),
+    'DD-MM-YYYY': (date, showDate) => dayjs(date).format(showDate ? 'DD-MM-YYYY' : 'MM-YYYY'),
+    'DD/MM/YYYY': (date, showDate) => dayjs(date).format(showDate ? 'DD/MM/YYYY' : 'MM/YYYY'),
+    'MM-DD-YYYY': (date, showDate) => dayjs(date).format(showDate ? 'MM-DD-YYYY' : 'MM-YYYY'),
+    'MM/DD/YYYY': (date, showDate) => dayjs(date).format(showDate ? 'MM/DD/YYYY' : 'MM/YYYY'),
+    'YYYY-MM-DD': (date, showDate) => dayjs(date).format(showDate ? 'YYYY-MM-DD' : 'YYYY-MM'),
+    'YYYY/MM/DD': (date, showDate) => dayjs(date).format(showDate ? 'YYYY/MM/DD' : 'YYYY/MM'),
 }
 
-export const formatDateWithStyle = (date: Date, style: DateFormat, showDate: boolean): string => {
+export const formatDateWithStyle = (dateString: string, style: DateFormat, showDate: boolean): string => {
     let formatFct = formatter[style];
     if (!formatFct) {
         formatFct = formatter[defaultFormat];
     }
-    return formatFct(date, showDate);
+    return formatFct(dateString, showDate);
 }
 
-export const formatDate = (date: Date, showDate: boolean = true): string => formatDateWithStyle(date, DatabaseHandler.getInstance().getAppSettingsBestEffortSync().dateFormat, showDate);
+export const formatDate = (dateString: string, showDate: boolean = true): string => formatDateWithStyle(dateString, DatabaseHandler.getInstance().getAppSettingsBestEffortSync().dateFormat, showDate);

@@ -111,9 +111,8 @@ export function navigateToItemPage(appSettings: AppSettings, navigation: Navigat
     const rolloverLimit = timeToFloat(appSettings.rolloverPeriod);
     if (appSettings.enableRollover && currentTime <= rolloverLimit) {
         const yesterday = getDateString(dayBefore(new Date()));
-        const yesterdayDate = new Date(yesterday);
-        const yesterdayString = formatDateWithStyle(yesterdayDate, appSettings.dateFormat, true);
-        const today = new Date(getDateString(new Date()));
+        const yesterdayString = formatDateWithStyle(yesterday, appSettings.dateFormat, true);
+        const today = getDateString(new Date());
         const todayString = formatDateWithStyle(today, appSettings.dateFormat, true);
         if (appSettings.promptForRollover) {
             Alert.alert(

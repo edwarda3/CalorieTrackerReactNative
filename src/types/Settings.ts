@@ -44,7 +44,7 @@ export interface AppSettings {
 
 export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSettings) => string> = {
     timeFormat: (settings) => settings.timeFormat === '12' ? `3:00PM` : `15:00`,
-    dateFormat: (settings) => formatDateWithStyle(new Date(getDateString(new Date())), settings.dateFormat, true),
+    dateFormat: (settings) => formatDateWithStyle(getDateString(new Date()), settings.dateFormat, true),
     itemPageHasIntermediateDayPage: (settings) => `${settings.itemPageHasIntermediateDayPage ? `Show` : `Do not show`} the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
     addOneOnAllDays: (settings) => `"Add 1 Serving" option ${settings.addOneOnAllDays ? 'will be shown on all days' : 'will only be shown for the current day'}`,
     thresholds: (_settings) => `Threshold values to color calendar days and show on day pages. Currently not editable.`,
