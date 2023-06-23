@@ -1,21 +1,20 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Button, FlatList, Keyboard, Modal, Text, TextInput, View } from 'react-native';
+import React, { useCallback, useState } from 'react';
+import { Button, Keyboard, Text, TextInput, View } from 'react-native';
 import { bespokeStyle, styles } from '../styles/Styles';
-import { DataStore, Database, MealData } from '../types/Model';
+import { DataStore } from '../types/Model';
 import _ from 'lodash';
 import ContextMenu from 'react-native-context-menu-view';
 import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import { DayPageParams } from './DayPage';
-import { ItemPageParams } from './ItemPage';
 import { HorizontalLine } from '../components/Layout';
 import { MealEntryListItem } from '../components/MealEntryListItem';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExtensibleButton } from '../components/Buttons';
 import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { formatDate, getDateString, getDateStringParts, getYearMonthIndex } from '../types/Dates';
+import { formatDate, getDateString } from '../types/Dates';
 import Toast from 'react-native-toast-message';
 import { ScrollView } from 'native-base';
 import { DaySearchResult, SearchForMealsOptions, searchForMeals } from '../data/search';
@@ -109,8 +108,8 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
         >
             <View style={{ padding: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
-                    {dataStore && <SFSymbol 
-                    style={{paddingLeft: 10}}
+                    {dataStore && <SFSymbol
+                        style={{ paddingLeft: 10 }}
                         name='square.fill'
                         size={12}
                         scale='large'
@@ -176,6 +175,8 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
         </ContextMenu>
     }
 
+    const getTotalKcalsFromSearchResult = (results: DaySearchResult[]) => _.sumBy(results, (result) => result.matchedItemTotalKcal);
+
     return (
         <SafeAreaView style={{
             flex: 1, // cuts off the render at the bottom of the screen edge, to prevent FlatList from extending past the screen.
@@ -230,7 +231,10 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     locale='en'
                 />
             </Collapsible>
-            <Text style={bespokeStyle('subLabel', { paddingHorizontal: 10, marginTop: 10 })}>{totalFound}{dateStringCursor ? '+' : ''} results found</Text>
+            <View style={{flexDirection: 'row', gap: 10, paddingHorizontal: 10, marginTop: 10}}>
+                <Text style={bespokeStyle('subLabel', { flexGrow: 1, flexShrink: 1 })}>{totalFound}{dateStringCursor ? '+' : ''} results found</Text>
+                {showDateFilters && !_.isEmpty(foundResult) && <Text style={styles.subLabel}>{getTotalKcalsFromSearchResult(foundResult)} kcals total</Text>}
+            </View>
             <HorizontalLine marginTop={10} />
             <ScrollView indicatorStyle='black' onScrollBeginDrag={() => Keyboard.dismiss()}>
                 {_.map(foundResult, getDaySearchResultDisplay)}

@@ -19,7 +19,7 @@ export const filterNameByRegexIfValid = (regexFilter: string, kcalFilter: number
         regex = null
     }
     return mealDataList.filter((mealData) => {
-        const nameMatches = !!regex ? regex.test(mealData.name) : mealData.name.toLowerCase().includes(regexFilter.toLowerCase());
+        const nameMatches = !!regex ? regex.test(mealData.name.trim()) : mealData.name.toLowerCase().trim().includes(regexFilter.toLowerCase());
         const caloriesMeetMinumum = (mealData.kcalPerServing * mealData.servings) >= Number(kcalFilter);
         return nameMatches && caloriesMeetMinumum;
     });
@@ -41,6 +41,13 @@ export interface SearchForMealOutput {
 }
 
 export const searchForMeals = (database: Database, options: SearchForMealsOptions): SearchForMealOutput => {
+    if (_.isEmpty(options.nameFilter?.trim())) {
+        return {
+            searchResult: [],
+            searchFoundCount: 0,
+            cursor: null
+        };
+    }
     // key of map will be date in YYYY-MM-DD form.
     const searchResult: Array<DaySearchResult> = [];
     let totalEntryCount = 0;
