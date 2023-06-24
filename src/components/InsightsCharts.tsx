@@ -44,8 +44,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
             if (_.isEmpty(data)) {
                 return <Text style={styles.subLabel}>No Data</Text>
             }
-            const yTickSize = yMax > 3600 ? 800 : 400;
-            const roundedYMax = roundToNearest(yMax, yTickSize);
+            const roundedYMax = roundToNearest(yMax, 500);
             const average = avgType === 'mean' ?
                 _.sum(data.map(({ y }) => (y ?? 0) as number)) / data.length :
                 getMedian(data.map(({ y }) => (y ?? 0) as number));
@@ -63,7 +62,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
                 borderWidth={0}
                 style={{
                     height: graphHeight,
-                    width: Dimensions.get('window').width - 10,
+                    width: Dimensions.get('window').width - 20,
                     padding: 10,
                     ...props.style ?? {}
                 }}
@@ -94,6 +93,8 @@ export const InsightsChart = (props: InsightsChartProps) => {
                         drawGridLines: true,
                         gridDashedLine: { lineLength: 1, spaceLength: 3 },
                         drawAxisLine: false,
+                        axisMinimum: yMin,
+                        axisMaximum: roundedYMax,
                         limitLines: [
                             {
                                 limit: average,
