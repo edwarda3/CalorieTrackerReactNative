@@ -238,6 +238,22 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     </Collapsible>
                 </View>
                 <View style={styles.formField}>
+                    <Text style={styles.label}>Kcal/Serving</Text>
+                    <TextInput
+                        style={styles.input}
+                        onChangeText={(text) => {
+                            setKcalPer(Number(text));
+                            setCanSavePreset(true);
+                        }}
+                        value={kcalPer.toString()}
+                        onFocus={() => setShowSuggestions(false)}
+                        placeholder='Kcals per serving'
+                        placeholderTextColor='grey'
+                        inputMode='numeric'
+                        selectTextOnFocus={true}
+                    />
+                </View>
+                <View style={styles.formField}>
                     <Text style={styles.label}>Servings</Text>
                     <TextInput
                         style={styles.input}
@@ -255,24 +271,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         symbol={{name: 'plus', weight: 'light'}}
                         onPress={() => {
                             const currentServingsNum = isNaN(Number(servingsStr)) ? 0 : Number(servingsStr);
-                            setServingsStr(`${currentServingsNum + 1}`);
+                            const addBy = Math.min(currentServingsNum, 1);
+                            setServingsStr(`${currentServingsNum + addBy}`);
                         }}
-                    />
-                </View>
-                <View style={styles.formField}>
-                    <Text style={styles.label}>Kcal/Serving</Text>
-                    <TextInput
-                        style={styles.input}
-                        onChangeText={(text) => {
-                            setKcalPer(Number(text));
-                            setCanSavePreset(true);
-                        }}
-                        value={kcalPer.toString()}
-                        onFocus={() => setShowSuggestions(false)}
-                        placeholder='Kcals per serving'
-                        placeholderTextColor='grey'
-                        inputMode='numeric'
-                        selectTextOnFocus={true}
                     />
                 </View>
                 <View style={bespokeStyle('formField', {paddingRight: 10})}>

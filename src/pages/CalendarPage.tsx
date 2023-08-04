@@ -14,6 +14,7 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import ContextMenu from 'react-native-context-menu-view';
 import { ThresholdBar, getColorPerCalories } from '../components/ThresholdBar';
 import { InsightsChart } from '../components/InsightsCharts';
+import dayjs from 'dayjs';
 
 export const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
     const year = ymKey.slice(0, 4);
@@ -96,14 +97,19 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                         if (dayProps && dayProps.date) {
                             const { year, month, day } = getDateStringParts(dayProps.date.dateString);
                             // We set this as kcal on purpose when we setup markedDates
-                            const dayKcals = Number(dayProps.marking?.color);
+                            const dayKcals = Number(dayProps.marking?.color ?? '0');
                             const inCurrentMonth = currentYearMonth === `${year}-${month}`;
-                            const backgroundColor = getColorPerCalories(
+                            let backgroundColor = getColorPerCalories(
                                 settings.thresholds,
                                 dayKcals,
                                 inCurrentMonth ? 0 : 30,
                                 inCurrentMonth ? 1 : 0.5,
                             );
+                            const isBeforeToday = dayjs(dayProps.date.dateString).isBefore(dayjs(), 'day');
+                            if (dayKcals <= 0 && isBeforeToday && inCurrentMonth) {
+                                // grey out same-month days that aren't tracked.
+                                backgroundColor = `rgba(100,100,100,.2)`;
+                            }
                             const databaseInfo = database?.[`${year}-${month}`]?.[day];
                             return (
                                 <ContextMenu

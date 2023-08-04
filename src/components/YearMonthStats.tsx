@@ -43,8 +43,8 @@ export const YearMonthStats = (props: YearMonthStatsProps) => {
                 label={props.averageType === 'mean' ? 'Average Kcals' : 'Median Kcals'}
                 value={props.averageType === 'mean' ? avgKcalsPerDay.toLocaleString() : medianKcals.toLocaleString()}
             />
-            <InfoDisplay label='Max Kcals in a day' value={minKcals.toLocaleString()} />
-            <InfoDisplay label='Min Kcals in a day' value={maxKcals.toLocaleString()} />
+            <InfoDisplay label='Min Kcals in a day' value={minKcals.toLocaleString()} />
+            <InfoDisplay label='Max Kcals in a day' value={maxKcals.toLocaleString()} />
         </View>
     );
 }
