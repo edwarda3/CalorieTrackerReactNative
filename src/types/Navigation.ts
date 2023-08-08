@@ -4,7 +4,7 @@ import { CalendarPage } from '../pages/CalendarPage';
 import { DayPage, DayPageParams } from '../pages/DayPage';
 import { ItemPage, ItemPageParams } from '../pages/ItemPage';
 import { PresetsPage } from '../pages/PresetsPage';
-import { SearchByMeal } from '../pages/SearchByMeal';
+import { SearchByMeal, SearchByMealParams } from '../pages/SearchByMeal';
 import { SettingsPage } from "../pages/SettingsPage";
 import { AppSettings } from "./Settings";
 import _ from "lodash";
@@ -21,7 +21,7 @@ export enum NavigationPages {
     SEARCH_BY_MEAL = 'search-by-meal',
 };
 
-type NavRouteParams = DayPageParams | ItemPageParams;
+type NavRouteParams = DayPageParams | ItemPageParams | SearchByMealParams;
 
 type NavFunction = (routeName: string, params?: NavRouteParams) => void;
 
@@ -102,7 +102,7 @@ export function navigateToItemPage(appSettings: AppSettings, navigation: Navigat
             };
         }
         if (appSettings?.itemPageHasIntermediateDayPage) {
-            navigation.navigate(NavigationPages.DAY, (specifiedDate || params) ? _.pick(itemPageParams, 'dateString') : undefined);
+            navigation.push(NavigationPages.DAY, (specifiedDate || params) ? _.pick(itemPageParams, 'dateString') : undefined);
         }
         navigation.navigate(NavigationPages.ITEM, itemPageParams);
     }

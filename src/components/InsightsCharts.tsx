@@ -23,7 +23,10 @@ type InsightDisplayMode = 'byday' | 'byhour' | 'textstats';
 
 export const InsightsChart = (props: InsightsChartProps) => {
     const [showing, setShowing] = useState<InsightDisplayMode>('byday');
-    const [avgType, setAvgType] = useState<AverageType>('median');
+    // default to mean if less than 12 days tracked.
+    const defaultAverageType: AverageType = Object.keys(props.monthData ?? {}).length < 12 ? 'mean' : 'median';
+    const [avgType, setAvgType] = useState<AverageType>(defaultAverageType);
+    const [scaleFactor, setScaleFactor] = useState<number>(1);
 
     const roundToNearest = (precise: number, roundInterval: number): number => {
         const toNearestInterval = roundInterval - (precise % roundInterval);
@@ -44,7 +47,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
             if (_.isEmpty(data)) {
                 return <Text style={styles.subLabel}>No Data</Text>
             }
-            const roundedYMax = roundToNearest(yMax, 500);
+            const roundedYMax = roundToNearest(yMax + /*space buffer*/ 130, 500);
             const average = avgType === 'mean' ?
                 _.sum(data.map(({ y }) => (y ?? 0) as number)) / data.length :
                 getMedian(data.map(({ y }) => (y ?? 0) as number));
@@ -53,10 +56,11 @@ export const InsightsChart = (props: InsightsChartProps) => {
                 highlightPerTapEnabled={false}
                 legend={{ enabled: false }}
                 marker={{ enabled: false }}
-                doubleTapToZoomEnabled={false}
-                pinchZoom={false}
-                scaleEnabled={false}
-                dragEnabled={false}
+                doubleTapToZoomEnabled={true}
+                pinchZoom={true}
+                scaleYEnabled={false}
+                scaleXEnabled={true}
+                dragEnabled={true}
                 drawGridBackground={false}
                 drawBorders={false}
                 borderWidth={0}
@@ -83,7 +87,7 @@ export const InsightsChart = (props: InsightsChartProps) => {
                         phase: 1,
                     },
                     axisMaximum: xMax,
-                    labelCount: Math.floor(xMax / 2),
+                    labelCount: Math.floor((xMax / 2) / scaleFactor),
                 }}
                 yAxis={{
                     left: {
@@ -111,6 +115,9 @@ export const InsightsChart = (props: InsightsChartProps) => {
                         drawAxisLine: false,
                     }
                 }}
+                onChange={({ nativeEvent }) => {
+                    setScaleFactor(nativeEvent.scaleX ?? 1)
+                }}
                 data={{
                     dataSets: [
                         {
@@ -121,8 +128,9 @@ export const InsightsChart = (props: InsightsChartProps) => {
                                     return processColor(getColorPerCalories(props.thresholds!, y as number, 0, .8))
                                 }) : undefined,
                                 valueTextColor: processColor('darkslategrey'),
-                                valueTextSize: 5,
+                                valueTextSize: (4 * scaleFactor),
                                 valueFormatter: '', // this removes decimal somehow
+                                highlightEnabled: false,
                             }
                         }
                     ]

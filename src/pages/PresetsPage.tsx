@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { Button, FlatList, Keyboard, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
-import { NavigatedScreenProps } from '../types/Navigation';
+import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
 import _ from 'lodash';
 import { MealData, MealPreset } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
@@ -9,9 +9,26 @@ import ContextMenu from 'react-native-context-menu-view';
 import { bespokeStyle, styles } from '../styles/Styles';
 import { getYearMonthIndex } from '../types/Dates';
 import { getSurroundingMonths } from './CalendarPage';
+import { SearchByMealParams } from './SearchByMeal';
 
 export const sortPresets = (presets: MealPreset[]): MealPreset[] => {
     return (presets ?? []).sort((preset1, preset2) => preset1.name.localeCompare(preset2.name));
+}
+
+export const getPresetsMatchingFilter = (presets: MealPreset[], filter: string = ''): MealPreset[] => {
+    let regex: RegExp | null;
+    try {
+        regex = new RegExp(filter.replace('*', '.*').trim(), 'i');
+    } catch (err) {
+        regex = null
+    }
+    const filteredPresets = presets.filter((preset) => 
+        !!preset && (!!regex ? 
+            regex.test(preset.name.trim()) : 
+            preset.name.toLowerCase().includes(filter.toLowerCase())
+        )
+    );
+    return filteredPresets;
 }
 
 export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
@@ -90,6 +107,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             previewBackgroundColor='rgba(0,0,0,0)'
             actions={[
                 { title: 'Edit' },
+                { title: `Search`, subtitle: `Find "${preset.name}"` },
                 { title: 'Delete', destructive: true }
             ]}
             onPress={({ nativeEvent }) => {
@@ -97,6 +115,11 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     setPresetMealId(preset.id);
                     setPresetMealName(preset.name);
                     setPresetMealKcals(preset.kcalPerServing);
+                } else if (nativeEvent.name === 'Search') {
+                    const searchParams: SearchByMealParams = {
+                        prefillSearch: `^${preset.name.trim()}$`
+                    };
+                    props.navigation.navigate(NavigationPages.SEARCH_BY_MEAL, searchParams);
                 } else if (nativeEvent.name === 'Delete') {
                     deletePreset(preset.id);
                 }
@@ -137,8 +160,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
         // show the first 6 suggestions
         .slice(0, 6);
 
-    const filteredPresets = (presets ?? [])
-        .filter((preset) => (!!preset && preset.name.toLowerCase().includes(filter.toLowerCase())));
+    const filteredPresets = getPresetsMatchingFilter(presets, filter)
     const sortedPresets = sortPresets(filteredPresets);
 
     return (

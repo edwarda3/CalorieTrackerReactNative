@@ -271,8 +271,8 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         symbol={{name: 'plus', weight: 'light'}}
                         onPress={() => {
                             const currentServingsNum = isNaN(Number(servingsStr)) ? 0 : Number(servingsStr);
-                            const addBy = Math.min(currentServingsNum, 1);
-                            setServingsStr(`${currentServingsNum + addBy}`);
+                            // set to 1 if under 1, otherwise add 1.
+                            setServingsStr(`${currentServingsNum < 1 ? 1 : currentServingsNum + 1}`);
                         }}
                     />
                 </View>

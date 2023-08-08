@@ -13,6 +13,7 @@ import { MealEntryListItem } from '../components/MealEntryListItem';
 import { ThresholdBar } from '../components/ThresholdBar';
 import { AppSettings } from '../types/Settings';
 import Toast from 'react-native-toast-message';
+import { SearchByMealParams } from './SearchByMeal';
 
 export interface DayPageParams {
     dateString: string;
@@ -97,7 +98,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 }
                             },
                             {
-                                title: 'Add 1 Serving',
+                                title: item.servings < 1 ? 'Set to 1 Serving' : 'Add 1 Serving',
                                 hideOption: !settings.addOneOnAllDays && !isToday,
                                 onPress: () => {
                                     DatabaseHandler.getInstance().modifyEntry(
@@ -107,7 +108,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                         {
                                             name: item.name,
                                             time: item.time,
-                                            servings: item.servings + 1,
+                                            servings: item.servings < 1 ? 1 : item.servings + 1,
                                             kcalPerServing: item.kcalPerServing,
                                         }
                                     ).then(refresh);
@@ -124,6 +125,16 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                             kcalPerServing: item.kcalPerServing,
                                         }
                                     });
+                                }
+                            },
+                            {
+                                title: `Search`,
+                                subtitle: `Find "${item.name}"`,
+                                onPress: () => {
+                                    const searchParams: SearchByMealParams = {
+                                        prefillSearch: `^${item.name.trim()}$`
+                                    };
+                                    props.navigation.navigate(NavigationPages.SEARCH_BY_MEAL, searchParams);
                                 }
                             },
                             {

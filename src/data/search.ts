@@ -26,6 +26,7 @@ export const filterNameByRegexIfValid = (regexFilter: string, kcalFilter: number
 }
 
 export interface SearchForMealsOptions {
+    database: Database;
     nameFilter: string;
     minimumKcalFilter?: number;
     minDate?: Date;
@@ -40,7 +41,8 @@ export interface SearchForMealOutput {
     cursor: string|null;
 }
 
-export const searchForMeals = (database: Database, options: SearchForMealsOptions): SearchForMealOutput => {
+export const searchForMeals = (options: SearchForMealsOptions): SearchForMealOutput => {
+    const { database } = options;
     if (_.isEmpty(options.nameFilter?.trim())) {
         return {
             searchResult: [],

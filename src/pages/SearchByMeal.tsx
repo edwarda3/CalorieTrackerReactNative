@@ -21,9 +21,19 @@ import { DaySearchResult, SearchForMealsOptions, searchForMeals } from '../data/
 import { getColorPerCalories } from '../components/ThresholdBar';
 import { SFSymbol } from 'react-native-sfsymbols';
 
+export interface SearchByMealParams {
+    prefillSearch: string;
+}
+
+const getDefaultSearchByMealParams = (): SearchByMealParams => ({
+    prefillSearch: ''
+});
+
 export const SearchByMeal = (props: NavigatedScreenProps) => {
     const [dataStore, setDatastore] = useState<DataStore | null>(null);
-    const [nameFilter, setNameFilter] = useState<string>('');
+    const { params } = props.route;
+    const options: SearchByMealParams = _.defaults(params as any, getDefaultSearchByMealParams());
+    const [nameFilter, setNameFilter] = useState<string>(options.prefillSearch);
     const [totalKcalFilterStr, setTotalKcalFilterStr] = useState<string>('');
     const [showDateFilters, setShowDateFilters] = useState<boolean>(false);
     const monthAgo = new Date();
@@ -37,6 +47,9 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
     const refresh = async () => {
         const dataStore = await DatabaseHandler.getInstance().getAllKnownData();
         setDatastore(dataStore);
+        if (nameFilter) {
+            performSearch({ database: dataStore.database, nameFilter });
+        }
     }
 
     useFocusEffect(
@@ -47,8 +60,10 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
     );
 
     const performSearch = (searchOptions?: Partial<SearchForMealsOptions>, updateOptions?: { ignoreDate?: boolean; replace?: boolean }) => {
-        if (dataStore?.database) {
+        const database = searchOptions?.database ?? dataStore?.database;
+        if (database) {
             const searchOptionsByState: SearchForMealsOptions = {
+                database,
                 nameFilter: nameFilter,
                 minimumKcalFilter: isNaN(Number(totalKcalFilterStr)) ? 0 : Number(totalKcalFilterStr),
                 startFromDateString: updateOptions?.replace ? null : dateStringCursor,
@@ -58,7 +73,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                 searchOptionsByState.minDate = minDate;
                 searchOptionsByState.maxDate = maxDate;
             }
-            const { searchResult, searchFoundCount, cursor } = searchForMeals(dataStore.database, {
+            const { searchResult, searchFoundCount, cursor } = searchForMeals({
                 ...searchOptionsByState,
                 ...(searchOptions ?? {})
             });
@@ -102,7 +117,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     const dayPageParams: DayPageParams = {
                         dateString: dateString,
                     }
-                    props.navigation.navigate(NavigationPages.DAY, dayPageParams)
+                    props.navigation.push(NavigationPages.DAY, dayPageParams)
                 }
             }}
         >
