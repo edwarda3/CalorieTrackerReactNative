@@ -15,6 +15,7 @@ import ContextMenu from 'react-native-context-menu-view';
 import { ThresholdBar, getColorPerCalories } from '../components/ThresholdBar';
 import { InsightsChart } from '../components/InsightsCharts';
 import dayjs from 'dayjs';
+import { formatMealName } from '../styles/Formatter';
 
 export const getSurroundingMonths = (ymKey: string): { previousMonth: string; nextMonth: string } => {
     const year = ymKey.slice(0, 4);
@@ -119,7 +120,7 @@ export function CalendarPage({ navigation }: NavigatedScreenProps): JSX.Element 
                                         [
                                             { title: `${formatDate(dayProps.date.dateString)} - ${dayKcals}kcals` },
                                             ..._.map(databaseInfo ?? [], (mealData) => ({
-                                                title: `[${formatToAmPm(mealData.time)}] ${_.startCase(mealData.name)}`,
+                                                title: `[${formatToAmPm(mealData.time)}] ${formatMealName(mealData.name)}`,
                                                 subtitle: `(${mealData.servings} × ${mealData.kcalPerServing}kcal) → ${mealData.kcalPerServing * mealData.servings}kcal`,
                                                 disabled: true,
                                             }))

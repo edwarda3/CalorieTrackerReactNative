@@ -44,7 +44,7 @@ export function HomePage(props: HomePageProps): JSX.Element {
                 <HorizontalLine />
                 <BigButton title='Go to Today' symbol={{ name: pageDetails[NavigationPages.DAY].symbolName }} onPress={() => navigation.navigate(NavigationPages.DAY)} />
                 <HorizontalLine />
-                <BigButton title='Quick Add Entry' symbol={{ name: pageDetails[NavigationPages.ITEM].symbolName }} onPress={() => navigateToItemPage(settings, navigation)} />
+                <BigButton title='Quick Add Entry' symbol={{ name: pageDetails[NavigationPages.ITEM].symbolName }} onPress={() => navigateToItemPage({appSettings: settings, navigation})} />
                 <HorizontalLine />
                 <View style={{flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, gap: 10, alignItems: 'center'}}>
                 <BigButton title='Presets' symbol={{ name: pageDetails[NavigationPages.PRESETS].symbolName }} onPress={() => navigation.navigate(NavigationPages.PRESETS)} />

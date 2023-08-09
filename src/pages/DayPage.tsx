@@ -14,6 +14,7 @@ import { ThresholdBar } from '../components/ThresholdBar';
 import { AppSettings } from '../types/Settings';
 import Toast from 'react-native-toast-message';
 import { SearchByMealParams } from './SearchByMeal';
+import { formatMealName } from '../styles/Formatter';
 
 export interface DayPageParams {
     dateString: string;
@@ -90,10 +91,15 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                             {
                                 title: 'Edit',
                                 onPress: () => {
-                                    navigateToItemPage(settings, props.navigation, {
-                                        ...options,
-                                        itemName: item.name,
-                                        itemTime: item.time,
+                                    navigateToItemPage({
+                                        appSettings: settings,
+                                        forceSkipIntermediateDaypage: true,
+                                        navigation: props.navigation,
+                                        params: {
+                                            ...options,
+                                            itemName: item.name,
+                                            itemTime: item.time,
+                                        }
                                     })
                                 }
                             },
@@ -117,12 +123,17 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                             {
                                 title: `Copy${isToday ? '' : ' to Today'}`,
                                 onPress: () => {
-                                    navigateToItemPage(settings, props.navigation, {
-                                        dateString: getDateString(new Date()),
-                                        prefill: {
-                                            name: item.name,
-                                            servings: item.servings,
-                                            kcalPerServing: item.kcalPerServing,
+                                    navigateToItemPage({
+                                        appSettings: settings,
+                                        forceSkipIntermediateDaypage: isToday,
+                                        navigation: props.navigation,
+                                        params: {
+                                            dateString: getDateString(new Date()),
+                                            prefill: {
+                                                name: item.name,
+                                                servings: item.servings,
+                                                kcalPerServing: item.kcalPerServing,
+                                            }
                                         }
                                     });
                                 }
@@ -152,7 +163,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                     setPresets(newPresets);
                                     Toast.show({
                                         type: 'success',
-                                        text1: `Successfully saved preset ${_.startCase(item.name)}`
+                                        text1: `Successfully saved preset ${formatMealName(item.name)}`
                                     })
                                 }
                             },

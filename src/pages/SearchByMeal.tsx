@@ -20,6 +20,7 @@ import { ScrollView } from 'native-base';
 import { DaySearchResult, SearchForMealsOptions, searchForMeals } from '../data/search';
 import { getColorPerCalories } from '../components/ThresholdBar';
 import { SFSymbol } from 'react-native-sfsymbols';
+import { formatMealName } from '../styles/Formatter';
 
 export interface SearchByMealParams {
     prefillSearch: string;
@@ -139,18 +140,26 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     return <MealEntryListItem key={`${mealData.name}-${mealData.time}-${dateString}`} meal={mealData} actions={[
                         {
                             title: 'Edit Entry', onPress: () => {
-                                navigateToItemPage(dataStore?.settings!, props.navigation, {
-                                    dateString: dateString,
-                                    itemName: mealData.name,
-                                    itemTime: mealData.time,
-                                })
+                                navigateToItemPage({
+                                    appSettings: dataStore?.settings!,
+                                    navigation: props.navigation,
+                                    params: {
+                                        dateString: dateString,
+                                        itemName: mealData.name,
+                                        itemTime: mealData.time,
+                                    }
+                                });
                             }
                         },
                         {
                             title: 'Copy Entry to Today', onPress: () => {
-                                navigateToItemPage(dataStore?.settings!, props.navigation, {
-                                    dateString: getDateString(new Date()),
-                                    prefill: _.omit(mealData, 'time'),
+                                navigateToItemPage({
+                                    appSettings: dataStore?.settings!,
+                                    navigation: props.navigation,
+                                    params: {
+                                        dateString: getDateString(new Date()),
+                                        prefill: _.omit(mealData, 'time'),
+                                    }
                                 });
                             }
                         },
@@ -170,7 +179,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                                 });
                                 Toast.show({
                                     type: 'success',
-                                    text1: `Successfully saved preset ${_.startCase(mealData.name)}`
+                                    text1: `Successfully saved preset ${formatMealName(mealData.name)}`
                                 })
                             }
                         },

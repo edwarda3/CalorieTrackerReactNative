@@ -10,6 +10,7 @@ import { bespokeStyle, styles } from '../styles/Styles';
 import { getYearMonthIndex } from '../types/Dates';
 import { getSurroundingMonths } from './CalendarPage';
 import { SearchByMealParams } from './SearchByMeal';
+import { formatMealName } from '../styles/Formatter';
 
 export const sortPresets = (presets: MealPreset[]): MealPreset[] => {
     return (presets ?? []).sort((preset1, preset2) => preset1.name.localeCompare(preset2.name));
@@ -126,7 +127,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             }}>
 
             <View style={{ flexDirection: 'row', gap: 20, padding: 10 }}>
-                <Text style={bespokeStyle('label', { flexGrow: 1 })}>{_.startCase(preset.name)}</Text>
+                <Text style={bespokeStyle('label', { flexGrow: 1 })}>{formatMealName(preset.name)}</Text>
                 <Text style={styles.label}>{preset.kcalPerServing}kcal</Text>
             </View>
         </ContextMenu>
@@ -205,7 +206,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                                     setPresetMealName(suggestion.name);
                                     setPresetMealKcals(suggestion.kcalPerServing);
                                 }} style={{padding: 5}}>
-                                    <Text style={styles.subLabel}>{_.startCase(suggestion.name)} ({suggestion.kcalPerServing}kcal)</Text>
+                                    <Text style={styles.subLabel}>{formatMealName(suggestion.name)} ({suggestion.kcalPerServing}kcal)</Text>
                                 </Pressable>
                             })}
                         </ScrollView>

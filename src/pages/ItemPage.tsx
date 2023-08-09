@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 import { sortPresets } from './PresetsPage';
 import { getTimeHourMinutes } from '../types/Dates';
 import { ExtensibleButton } from '../components/Buttons';
+import { formatMealName } from '../styles/Formatter';
 
 export interface ItemPageParams extends DayPageParams {
     // The name of the item, if it already exists. If creating a new item, leave this blank.
@@ -129,7 +130,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         setAvailablePresets(presets);
         await DatabaseHandler.getInstance().setPresets(presets);
         Toast.show({
-            text1: `Successfully saved preset ${_.startCase(name)}`
+            text1: `Successfully saved preset ${formatMealName(name)}`
         });
     }
 
@@ -229,7 +230,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                                         setCanSavePreset(false);
                                         setShowSuggestions(false);
                                     }}>
-                                        <Text style={bespokeStyle('label', { color: '#777' })}>{_.startCase(preset.name)} ({preset.kcalPerServing}kcal)</Text>
+                                        <Text style={bespokeStyle('label', { color: '#777' })}>{formatMealName(preset.name)} ({preset.kcalPerServing}kcal)</Text>
                                     </Pressable>
                                 ))
                             }

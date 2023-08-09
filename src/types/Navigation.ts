@@ -89,7 +89,25 @@ export const pageDetails: Record<NavigationPages, PageDetail> = {
     },
 }
 
-export function navigateToItemPage(appSettings: AppSettings, navigation: NavigationControls, params?: ItemPageParams) {
+export interface NavigateToItemPageOptions {
+    appSettings: AppSettings;
+    /**
+     * In some cases, such as when editing from the containing day page,
+     * we want to skip the itemPageHasIntermediateDayPage even if it's enabled.
+     * This prevents a duplicate page from being pushed into the nav stack
+     */
+    forceSkipIntermediateDaypage?: boolean;
+    /**
+     * The navigation object that comes from the navigated screen props.
+     */
+    navigation: NavigationControls;
+    /**
+     * Params to pass into the item page, such as prefill or edit keys.
+     */
+    params?: ItemPageParams;
+}
+
+export function navigateToItemPage({appSettings, forceSkipIntermediateDaypage, navigation, params}: NavigateToItemPageOptions) {
     const navigateWithDay = (specifiedDate?: string, specifiedTime?: string) => {
         const itemPageParams: ItemPageParams = {
             ...params,
@@ -101,7 +119,7 @@ export function navigateToItemPage(appSettings: AppSettings, navigation: Navigat
                 time: specifiedTime,
             };
         }
-        if (appSettings?.itemPageHasIntermediateDayPage) {
+        if (!forceSkipIntermediateDaypage && appSettings?.itemPageHasIntermediateDayPage) {
             navigation.push(NavigationPages.DAY, (specifiedDate || params) ? _.pick(itemPageParams, 'dateString') : undefined);
         }
         navigation.navigate(NavigationPages.ITEM, itemPageParams);
