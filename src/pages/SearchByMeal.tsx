@@ -14,13 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ExtensibleButton } from '../components/Buttons';
 import Collapsible from 'react-native-collapsible';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { formatDate, getDateString } from '../types/Dates';
+import { formatDate, getDateString, getDifferenceInDates } from '../types/Dates';
 import Toast from 'react-native-toast-message';
 import { ScrollView } from 'native-base';
 import { DaySearchResult, SearchForMealsOptions, searchForMeals } from '../data/search';
 import { getColorPerCalories } from '../components/ThresholdBar';
 import { SFSymbol } from 'react-native-sfsymbols';
 import { formatMealName } from '../styles/Formatter';
+import dayjs from 'dayjs';
 
 export interface SearchByMealParams {
     prefillSearch: string;
@@ -107,6 +108,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
 
     const getDaySearchResultDisplay = (daySearchResult: DaySearchResult) => {
         const { dayResult, dateString, matchedItemTotalKcal, daySearchTotalKcal } = daySearchResult;
+        const dateDiff = getDifferenceInDates;
         return <ContextMenu
             previewBackgroundColor='rgba(0,0,0,0)'
             key={dateString}
@@ -132,7 +134,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         color={getColorPerCalories(dataStore.settings.thresholds, daySearchTotalKcal)}
                         weight='regular'
                     />}
-                    <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(dateString)}</Text>
+                    <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(dateString)} ({getDifferenceInDates(dateString)})</Text>
                     <Text style={styles.subLabel}>{matchedItemTotalKcal} of {daySearchTotalKcal}kcal ({Math.round(100 * (matchedItemTotalKcal / daySearchTotalKcal))}% of day)</Text>
                 </View>
                 {_.map(dayResult, (mealData) => {

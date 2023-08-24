@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { DateFormat, defaultFormat, formatDateWithStyle, formatTime, getDateString } from "./Dates";
 
 export interface AppSettings {
@@ -19,6 +20,10 @@ export interface AppSettings {
      * Determines if the "Add 1 Serving" context menu item will only show on today or on all days
      */
     addOneOnAllDays: boolean;
+    /**
+     * Determines whether the name field is auto-focused upon opening the item page
+     */
+    autoFocusMealName: AutoFocusMealNameOption;
     /**
      * Threshold values to color calendar days and show on day pages.
      */
@@ -42,11 +47,14 @@ export interface AppSettings {
     rolloverPeriod: string;
 }
 
+export type AutoFocusMealNameOption = 'always'|'newOnly'|'never';
+
 export const settingsDescriptions: Record<keyof AppSettings, (settings: AppSettings) => string> = {
     timeFormat: (settings) => settings.timeFormat === '12' ? `3:00PM` : `15:00`,
     dateFormat: (settings) => formatDateWithStyle(getDateString(new Date()), settings.dateFormat, true),
     itemPageHasIntermediateDayPage: (settings) => `${settings.itemPageHasIntermediateDayPage ? `Show` : `Do not show`} the "Today" overview page after "Quick Add" or "Copy to Today" are used`,
     addOneOnAllDays: (settings) => `"Add 1 Serving" option ${settings.addOneOnAllDays ? 'will be shown on all days' : 'will only be shown for the current day'}`,
+    autoFocusMealName: (settings) => settings.autoFocusMealName === 'newOnly' ? 'Focus the name field only when adding a new entry' : `${_.startCase(settings.autoFocusMealName)} focus the name field when opening a meal.`,
     thresholds: (_settings) => `Threshold values to color calendar days and show on day pages. Currently not editable.`,
     enableRollover: (settings) => `"Quick Add" or "Copy to Today" ${settings.enableRollover ? 'will' : 'will not'} add to the previous day if current time is before ${formatTime(settings.rolloverPeriod, settings.timeFormat)}.`,
     promptForRollover: (settings) => `If within the rollover period, ${settings.promptForRollover ? 'prompt' : 'do not prompt'} if adding to the previous day or current day.`,
@@ -58,6 +66,7 @@ export const getDefaultSettings = (): AppSettings => ({
     dateFormat: defaultFormat,
     itemPageHasIntermediateDayPage: true,
     addOneOnAllDays: false,
+    autoFocusMealName: 'newOnly',
     thresholds: getDefaultThresholds(),
     enableRollover: true,
     promptForRollover: true,

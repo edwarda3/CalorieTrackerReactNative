@@ -14,6 +14,7 @@ import { sortPresets } from './PresetsPage';
 import { getTimeHourMinutes } from '../types/Dates';
 import { ExtensibleButton } from '../components/Buttons';
 import { formatMealName } from '../styles/Formatter';
+import { AppSettings } from '../types/Settings';
 
 export interface ItemPageParams extends DayPageParams {
     // The name of the item, if it already exists. If creating a new item, leave this blank.
@@ -33,6 +34,7 @@ function getDefaultItemPageParams(): DayPageParams {
 export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const { params } = props.route;
     const options: ItemPageParams = _.defaults(params as any, getDefaultItemPageParams());
+    const [settings, setSettings] = useState<AppSettings>(DatabaseHandler.getInstance().getAppSettingsBestEffortSync());
     const yearMonthKey = options.dateString.slice(0, 7);
     const dayKey = options.dateString.slice(8, 10);
     const [availablePresets, setAvailablePresets] = useState<MealPreset[]>([]);
@@ -143,6 +145,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     undefined
             });
 
+            DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setSettings(appSettings));
             DatabaseHandler.getInstance().getPresets().then(presets => setAvailablePresets(presets));
 
             // on first load, if we have a name/time passed, we need to retrieve the value from the database.
@@ -169,9 +172,28 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         }, [])
     );
 
-    const filteredPresets = (availablePresets ?? [])
-        .filter((preset) => preset.name.toLowerCase().includes(name.toLowerCase()));
-    const sortedPresets = sortPresets(filteredPresets);
+    /**
+     * Preset filtering independent of word-order. For instance, the user can type:
+     * "instant ramen", "ramen instant", or "shin ramen"
+     * can all match the preset
+     * "shin instant ramen"
+     */
+    const getMatchingPresets = () => {
+        const nameSearchParts = Array.from(name.match(/\S+/g) ?? []);
+        const presetsMatchingAllParts = (availablePresets ?? []).filter((preset) =>
+            _.isEmpty(nameSearchParts) || nameSearchParts.every((namePart) => preset.name.toLowerCase().includes(namePart.toLowerCase()))
+        );
+        const sortedPresets = sortPresets(presetsMatchingAllParts);
+        return sortedPresets;
+    }
+    const matchedPresets = getMatchingPresets();
+
+    let shouldAutofocus = false;
+    if (settings.autoFocusMealName === 'always') {
+        shouldAutofocus = true;
+    } else if (settings.autoFocusMealName === 'newOnly') {
+        shouldAutofocus = !(options.itemName || options.itemTime);
+    }
 
     return (
         <SafeAreaView style={{
@@ -207,6 +229,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                             value={name}
                             placeholder='Name'
                             placeholderTextColor='grey'
+                            autoFocus={shouldAutofocus}
                             /**
                              * While I want to have setShowSuggestions(false) with onBlur, the blur event doesn't propogate
                              * its event down to the page nodes, namely pressable. This is because during focus, the only
@@ -222,7 +245,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     </View>
                     <Collapsible collapsed={!showSuggestions} style={{ padding: 5 }}>
                         <ScrollView style={{ maxHeight: 200 }} indicatorStyle='black'>
-                            {_.map(sortedPresets,
+                            {_.map(matchedPresets,
                                 (preset) => (
                                     <Pressable key={preset.id} style={{ paddingBottom: 10 }} onPress={() => {
                                         setName(preset.name);

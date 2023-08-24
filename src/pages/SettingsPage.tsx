@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Alert, Button, SafeAreaView, ScrollView, Share, Switch, Text, View, ViewProps, ViewStyle } from 'react-native';
 import { NavigatedScreenProps } from '../types/Navigation';
 import _ from 'lodash';
-import { AppSettings, getDefaultSettings, settingsDescriptions } from '../types/Settings';
+import { AppSettings, AutoFocusMealNameOption, getDefaultSettings, settingsDescriptions } from '../types/Settings';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import { isCancel, pickSingle } from 'react-native-document-picker';
@@ -159,6 +159,20 @@ export function SettingsPage(props: NavigatedScreenProps): JSX.Element {
                         { value: 'MM/DD/YYYY', label: formatDateWithStyle(today, 'MM/DD/YYYY', true) },
                         { value: 'YYYY-MM-DD', label: formatDateWithStyle(today, 'YYYY-MM-DD', true) },
                         { value: 'YYYY/MM/DD', label: formatDateWithStyle(today, 'YYYY/MM/DD', true) },
+                    ]}
+                />
+                <SettingsSwitch
+                    type={SettingsSwitchType.Select}
+                    value={appSettings.autoFocusMealName}
+                    label='Auto-focus Meal Name'
+                    description={settingsDescriptions.autoFocusMealName(appSettings)}
+                    onValueChanged={(value) => {
+                        persistAppSettings({ autoFocusMealName: value as AutoFocusMealNameOption })
+                    }}
+                    options={[
+                        { value: 'always', label: 'Always' },
+                        { value: 'newOnly', label: 'Only New Entries' },
+                        { value: 'never', label: 'Never' },
                     ]}
                 />
                 <HorizontalLine />

@@ -112,3 +112,29 @@ export const formatDateWithStyle = (dateString: string, style: DateFormat, showD
 }
 
 export const formatDate = (dateString: string, showDate: boolean = true): string => formatDateWithStyle(dateString, DatabaseHandler.getInstance().getAppSettingsBestEffortSync().dateFormat, showDate);
+
+/**
+ * Gets the relative date display for a specific unit. Can round up to "ease" the next unit.
+ * A difference that is negative will result in "x days ago", whereas positive will be "x days later"
+ * `unit` gets an 's' appended if difference is not 1.
+ * Roundup can affect the borders between dates. If the difference is -1.9 months (1 month 27ish days), then
+ * a roundUpAt less than .9 will result in that rendering as 2 months ago.
+ */
+const getRelativeTimeCount = (difference: number, unit: string, roundUpAt: number = 1) => {
+    if (difference === 0) return 'Today';
+    const direction = difference < 0 ? 'ago' : 'later';
+    let diffMagnitude = Math.abs(difference);
+    const decimalDifference = diffMagnitude - Math.floor(diffMagnitude);
+    if (decimalDifference > roundUpAt) diffMagnitude += 1;
+    const unitPluralized = `${unit}${Math.floor(diffMagnitude) === 1 ? '' : 's'}`;
+    return `${Math.floor(diffMagnitude)} ${unitPluralized} ${direction}`;
+}
+
+export const getDifferenceInDates = (eventDateString: string, compareAgainstDateString: string = getDateString(new Date())) => {
+    const years = dayjs(eventDateString).diff(compareAgainstDateString, 'years', true);
+    const months = dayjs(eventDateString).diff(compareAgainstDateString, 'months', true);
+    const days = dayjs(eventDateString).diff(compareAgainstDateString, 'days', true);
+    if (Math.floor(Math.abs(years)) !== 0) return getRelativeTimeCount(years, 'year');
+    if (Math.floor(Math.abs(months)) !== 0) return getRelativeTimeCount(months, 'month');
+    return getRelativeTimeCount(days, 'day');
+}
