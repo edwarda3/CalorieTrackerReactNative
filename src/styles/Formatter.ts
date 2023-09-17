@@ -10,6 +10,12 @@ const minorWords = [
 
 ]
 
+/**
+ * @param name The original user-given named
+ * @returns a formatted string with start case except for minor words and numbers.
+ * ex:
+ *  "bowl of fried rice 100g" => "Bowl of Fried Rice 100g"
+ */
 export const formatMealName = (name?: string|null) => {
     if (!name) return '';
     return name
@@ -20,6 +26,7 @@ export const formatMealName = (name?: string|null) => {
                 return part;
             }
             if (/\d+\w*/.test(part)) {
+                // if starting with numeric, such as 50mL (dont do 50Ml or 50ML)
                 return part;
             }
             const [firstChar, ...rest] = part;

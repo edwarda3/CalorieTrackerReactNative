@@ -1,16 +1,17 @@
 import React, { useCallback, useState } from 'react';
 import { Button, FlatList, Keyboard, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
-import { NavigatedScreenProps, NavigationPages } from '../types/Navigation';
+import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import _ from 'lodash';
 import { MealData, MealPreset } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
 import { bespokeStyle, styles } from '../styles/Styles';
-import { getYearMonthIndex } from '../types/Dates';
+import { getDateString, getYearMonthIndex } from '../types/Dates';
 import { getSurroundingMonths } from './CalendarPage';
 import { SearchByMealParams } from './SearchByMeal';
 import { formatMealName } from '../styles/Formatter';
+import { AppSettings } from '../types/Settings';
 
 export const sortPresets = (presets: MealPreset[]): MealPreset[] => {
     return (presets ?? []).sort((preset1, preset2) => preset1.name.localeCompare(preset2.name));
@@ -34,6 +35,7 @@ export const getPresetsMatchingFilter = (presets: MealPreset[], filter: string =
 
 export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
     const [presets, setPresets] = useState<MealPreset[]>([]);
+    const [settings, setSettings] = useState<AppSettings>(DatabaseHandler.getInstance().getAppSettingsBestEffortSync());
     const [recentMealEntries, setRecentMealEntries] = useState<MealData[]>([]);
     const [filter, setFilter] = useState<string>('');
     const [presetMealId, setPresetMealId] = useState<string | null>(null);
@@ -44,7 +46,8 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
 
     const refresh = async () => {
         setRefreshing(true);
-        Keyboard.dismiss()
+        Keyboard.dismiss();
+        DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setSettings(appSettings));
         const presets = await DatabaseHandler.getInstance().getPresets();
         setPresets(presets);
         const currentMonth = getYearMonthIndex(new Date());
@@ -109,6 +112,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             actions={[
                 { title: 'Edit' },
                 { title: `Search`, subtitle: `Find "${preset.name}"` },
+                { title: `Add to Today` },
                 { title: 'Delete', destructive: true }
             ]}
             onPress={({ nativeEvent }) => {
@@ -121,13 +125,30 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                         prefillSearch: `^${preset.name.trim()}$`
                     };
                     props.navigation.navigate(NavigationPages.SEARCH_BY_MEAL, searchParams);
+                } else if (nativeEvent.name === 'Add to Today') {
+                    navigateToItemPage({
+                        appSettings: settings,
+                        navigation: props.navigation,
+                        params: {
+                            dateString: getDateString(new Date()),
+                            prefill: {
+                                name: preset.name,
+                                kcalPerServing: preset.kcalPerServing,
+                                servings: 1
+                            },
+                        }
+                    });
                 } else if (nativeEvent.name === 'Delete') {
                     deletePreset(preset.id);
                 }
             }}>
 
-            <View style={{ flexDirection: 'row', gap: 20, padding: 10 }}>
-                <Text style={bespokeStyle('label', { flexGrow: 1 })}>{formatMealName(preset.name)}</Text>
+            <View style={{ flexDirection: 'row', gap: 20, padding: 3 }}>
+                <Text
+                    style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}
+                    adjustsFontSizeToFit
+                    numberOfLines={Math.floor(preset.name.length / 50) + 1}
+                >{formatMealName(preset.name)}</Text>
                 <Text style={styles.label}>{preset.kcalPerServing}kcal</Text>
             </View>
         </ContextMenu>

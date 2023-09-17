@@ -18,8 +18,11 @@ export interface MealEntryListItemProps {
     containerStyling?: ViewStyle;
 }
 
-export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntryListItemProps) => (
-    <ContextMenu
+const maxCharsPerLine = 20;
+export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntryListItemProps) => {
+    const mealName = formatMealName(meal.name);
+    const mealNameNumberOfLines = Math.floor(mealName.length / maxCharsPerLine) + 1;
+    return <ContextMenu
         previewBackgroundColor='rgba(0,0,0,0)'
         actions={_.map(actions.filter(a => !a.hideOption), (action) => _.omit(action, 'onPress'))}
         onPress={({ nativeEvent }) => {
@@ -29,7 +32,11 @@ export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntry
         <View style={{ padding: 10, flexDirection: 'row', gap: 20, alignItems: 'center', ...(containerStyling ?? {}) }}>
             <View style={{ flexDirection: 'column', flexGrow: 1, flexShrink: 1 }}>
                 <Text style={styles.subLabel}>{formatToAmPm(meal.time)}</Text>
-                <Text style={styles.label}>{formatMealName(meal.name)}</Text>
+                <Text
+                    style={styles.label}
+                    adjustsFontSizeToFit
+                    numberOfLines={mealNameNumberOfLines}
+                >{formatMealName(meal.name)}</Text>
             </View>
             <View style={{ flexDirection: 'column', alignItems: 'flex-end' }}>
                 <Text style={styles.subLabel}>{meal.servings} Serving(s)</Text>
@@ -38,4 +45,4 @@ export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntry
             <Text style={styles.label}>{meal.servings * meal.kcalPerServing}kcal</Text>
         </View>
     </ContextMenu>
-)
+}

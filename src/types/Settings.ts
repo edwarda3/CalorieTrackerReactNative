@@ -75,12 +75,14 @@ export const getDefaultSettings = (): AppSettings => ({
 
 export type Thresholds = Record<number, Array<number>>
 const getDefaultThresholds = (): Thresholds => ({
-    0: [255, 182, 193],
-    1000: [197, 182, 269],
-    1300: [207, 228, 250],
-    1600: [167, 222, 217],
-    1800: [144, 238, 144],
-    2000: [255, 255, 0],
-    2400: [255, 127, 80],
-    3000: [224, 96, 96],
+    0: [255, 182, 193], // pastel pink
+    1000: [197, 182, 269], // light magenta
+    1300: [207, 223, 250], // sky blue
+    1600: [167, 222, 217], // teal
+    1800: [144, 238, 144], // green
+    2000: [205, 245, 157], // greenish-yellow
+    2200: [255, 255, 0], // yellow
+    2400: [252, 186, 3], // yellow-orange
+    2600: [255, 127, 80], // orange
+    3000: [224, 96, 96], // red
 });

@@ -108,7 +108,6 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
 
     const getDaySearchResultDisplay = (daySearchResult: DaySearchResult) => {
         const { dayResult, dateString, matchedItemTotalKcal, daySearchTotalKcal } = daySearchResult;
-        const dateDiff = getDifferenceInDates;
         return <ContextMenu
             previewBackgroundColor='rgba(0,0,0,0)'
             key={dateString}
@@ -264,7 +263,10 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
             <HorizontalLine marginTop={10} />
             <ScrollView indicatorStyle='black' onScrollBeginDrag={() => Keyboard.dismiss()}>
                 {_.map(foundResult, getDaySearchResultDisplay)}
-                {dateStringCursor && <Button title='Load more results' onPress={() => performSearch()} />}
+                {dateStringCursor ?
+                    <Button title='Load more results' onPress={() => performSearch()} /> :
+                    <Text style={bespokeStyle('subLabel', { textAlign: 'center' })}>No more results</Text>
+                }
             </ScrollView>
             <Toast />
         </SafeAreaView>

@@ -69,7 +69,7 @@ export const ThresholdBar = (props: ThresholdBarProps) => {
 
                     return (
                         <Text key={currentThresholdValue} style={style}>
-                            &gt;{thresholdsInOrder[index]}
+                            &ge;{thresholdsInOrder[index]}
                         </Text>
                     )
                 })}

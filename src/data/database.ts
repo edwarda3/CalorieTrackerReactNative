@@ -135,6 +135,11 @@ export class DatabaseHandler {
     public async getAppSettings(): Promise<AppSettings> {
         const previouslyStored = await this.fetchAppSettingsFromAsyncStorage();
         const fullSettings = { ...getDefaultSettings(), ...previouslyStored };
+        if (false) {
+            // Eventually, I want to move this to user-selectable.
+            // for now, flip this switch and reinstall to use new thresholds.
+            fullSettings.thresholds = getDefaultSettings().thresholds;
+        }
         if (!_.isEqual(previouslyStored, fullSettings)) {
             await this.setAppSettings(fullSettings);
         }
