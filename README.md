@@ -47,7 +47,7 @@ For longer term standalone usage, an Ad-Hoc build can be done on the device with
 1. Create a build archive. Go to `Project` > `Archive` to start the archival process. This can take some time.
 1. Once the archive is complete, the organizer window automatically opens. If you want to export an existing archive or this window did not open, this window can be opened without archiving by going to `Window` > `Organizer`.
 1. Click on the archive you wish to load onto the device, and choose `Distribute App`.
-1. Choose `Ad-Hoc`, `None` for app-thinning. Over-the-air installation is not necessary if the device is connected via USB. Click `Automatically manage signing`.
+1. (On Xcode15, choose `Custom`, then) Choose `Ad-Hoc`, `None` for app-thinning. Over-the-air installation is not necessary if the device is connected via USB. Click `Automatically manage signing`.
 1. On the review page, you'll see the profile and certificate that will be used. Each of these has an expiration that is one year from its creation, and after this date the app will have to be re-signed and re-installed.
 1. After the `.ipa` file is exported, you can install it onto the device. This can be done via Xcode or Apple Configurator.
 ##### Xcode App Install

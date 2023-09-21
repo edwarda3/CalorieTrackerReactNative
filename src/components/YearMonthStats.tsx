@@ -23,7 +23,7 @@ export const YearMonthStats = (props: YearMonthStatsProps) => {
     let maxKcals = 0;
     const today = getDateString(new Date());
     const totalKcals = _.reduce(props.monthData ?? {}, (acc, dayData, day) => {
-        if (_.isEmpty(dayData) || _.sumBy(dayData, (day) => (day.kcalPerServing ?? 0) * (day.servings ?? 0))) {
+        if (_.isEmpty(dayData) || _.sumBy(dayData, (day) => (day.kcalPerServing ?? 0) * (day.servings ?? 0)) === 0) {
             // skip the day if there is a sum of 0
             return acc;
         }
@@ -39,20 +39,27 @@ export const YearMonthStats = (props: YearMonthStatsProps) => {
     }, 0);
     const avgKcalsPerDay = totalDays > 0 ? Math.floor(totalKcals / totalDays) : 0;
     const medianKcals = getMedian(totalPerDay);
+    const halfIndex = Math.floor(totalPerDay.length / 2);
+    const p25 = getMedian(totalPerDay.slice(0, halfIndex));
+    const p75 = getMedian(totalPerDay.slice(halfIndex, totalPerDay.length));
     const displayMinKcals = minKcals === startingMinCalc ? '-' : minKcals.toLocaleString();
+    const displayP25Kcals = p25 === 0 ? '-' : p25.toLocaleString()
+    const displayP75Kcals = p75 === 0 ? '-' : p75.toLocaleString()
     const displayMaxKcals = maxKcals === 0 ? '-' : maxKcals.toLocaleString()
 
     return (
         <View style={{ alignItems: 'flex-start' }}>
             <InfoDisplay label='Days tracked' value={totalDays} />
             <InfoDisplay label='Total Calories tracked' value={totalKcals.toLocaleString()} />
+            <InfoDisplay fontSize={14} label='Min Kcals in a day' value={displayMinKcals} />
+            <InfoDisplay fontSize={14} label='25th Percentile Kcals' value={displayP25Kcals} />
             <InfoDisplay
                 onPress={() => props.onAverageTypeChange(props.averageType === 'median' ? 'mean' : 'median')}
-                label={props.averageType === 'mean' ? 'Average Kcals' : 'Median Kcals'}
+                label={props.averageType === 'mean' ? 'Average Kcals' : '50th Percentile Kcals (Median)'}
                 value={props.averageType === 'mean' ? avgKcalsPerDay.toLocaleString() : medianKcals.toLocaleString()}
             />
-            <InfoDisplay label='Min Kcals in a day' value={displayMinKcals} />
-            <InfoDisplay label='Max Kcals in a day' value={displayMaxKcals} />
+            <InfoDisplay fontSize={14} label='75th Percentile Kcals' value={displayP75Kcals} />
+            <InfoDisplay fontSize={14} label='Max Kcals in a day' value={displayMaxKcals} />
         </View>
     );
 }
