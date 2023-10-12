@@ -145,8 +145,14 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                                 title: `Search`,
                                 subtitle: `Find "${item.name}"`,
                                 onPress: () => {
+                                    const searchString = item.name.trim();
+                                    const fixedForRegex = searchString
+                                        .replace('(', '\\(')
+                                        .replace(')', '\\)')
+                                        .replace('[', '\\[')
+                                        .replace(']', '\\]')
                                     const searchParams: SearchByMealParams = {
-                                        prefillSearch: `^${item.name.trim()}$`
+                                        prefillSearch: `^${fixedForRegex}$`
                                     };
                                     props.navigation.navigate(NavigationPages.SEARCH_BY_MEAL, searchParams);
                                 }

@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Button, FlatList, Keyboard, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
+import { Button, ColorValue, FlatList, Keyboard, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import _ from 'lodash';
 import { MealData, MealPreset } from '../types/Model';
@@ -7,13 +7,16 @@ import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
 import ContextMenu from 'react-native-context-menu-view';
 import { bespokeStyle, styles } from '../styles/Styles';
-import { getDateString, getYearMonthIndex } from '../types/Dates';
+import { formatDate, getDateString, getYearMonthIndex } from '../types/Dates';
 import { getSurroundingMonths } from './CalendarPage';
 import { SearchByMealParams } from './SearchByMeal';
 import { formatMealName } from '../styles/Formatter';
 import { AppSettings } from '../types/Settings';
+import { Select } from 'native-base';
+import { RowButtonSelector } from '../components/RowButtonSelector';
+import { HorizontalLine } from '../components/Layout';
 
-export const sortPresets = (presets: MealPreset[]): MealPreset[] => {
+export const sortPresetsByName = (presets: MealPreset[]): MealPreset[] => {
     return (presets ?? []).sort((preset1, preset2) => preset1.name.localeCompare(preset2.name));
 }
 
@@ -33,6 +36,12 @@ export const getPresetsMatchingFilter = (presets: MealPreset[], filter: string =
     return filteredPresets;
 }
 
+export enum SortingMode {
+    NAME='Name',
+    USAGE_COUNT='Usage Count',
+    LAST_USAGE='Last Usage Time'
+}
+
 export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
     const [presets, setPresets] = useState<MealPreset[]>([]);
     const [settings, setSettings] = useState<AppSettings>(DatabaseHandler.getInstance().getAppSettingsBestEffortSync());
@@ -41,8 +50,10 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
     const [presetMealId, setPresetMealId] = useState<string | null>(null);
     const [presetMealName, setPresetMealName] = useState<string>('');
     const [presetMealKcals, setPresetMealKcals] = useState<number>(0);
+    const [presetMealPastUsage, setPresetMealPastUsage] = useState<number>(0);
     const [refreshing, setRefreshing] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [sortMode, setSortMode] = useState<SortingMode>(SortingMode.NAME);
 
     const refresh = async () => {
         setRefreshing(true);
@@ -78,13 +89,16 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             presets[existingIndex] = {
                 id: presetMealId,
                 name: presetMealName,
-                kcalPerServing: presetMealKcals
+                kcalPerServing: presetMealKcals,
+                usageCount: presets[existingIndex].usageCount,
+                lastUsageTime: presets[existingIndex].lastUsageTime,
             }
         } else {
             presets.push({
                 id: Date.now().toString(),
                 name: presetMealName,
-                kcalPerServing: presetMealKcals
+                kcalPerServing: presetMealKcals,
+                usageCount: presetMealPastUsage,
             });
         }
         setPresets(presets);
@@ -92,6 +106,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
         setPresetMealId(null);
         setPresetMealName('');
         setPresetMealKcals(0);
+        setPresetMealPastUsage(0);
         refresh();
     }
 
@@ -105,14 +120,27 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
         }
     }
 
+    const resetUsage = async (presetId: string) => {
+        const existingIndex = (presets ?? []).findIndex((preset) => presetId !== null && preset.id === presetId);
+        if (existingIndex >= 0) {
+            presets[existingIndex].usageCount = 0;
+            presets[existingIndex].lastUsageTime = undefined;
+            setPresets(presets);
+            await DatabaseHandler.getInstance().setPresets(presets);
+            refresh();
+        }
+    }
+
     const getPresetView = (preset: MealPreset) => (
         <ContextMenu
             key={preset.id}
             previewBackgroundColor='rgba(0,0,0,0)'
             actions={[
+                { title: preset.lastUsageTime ? `Last used on ${formatDate(getDateString(new Date(preset.lastUsageTime)))}` : 'Never used', disabled: true },
                 { title: 'Edit' },
                 { title: `Search`, subtitle: `Find "${preset.name}"` },
                 { title: `Add to Today` },
+                { title: 'Reset Usage', destructive: true },
                 { title: 'Delete', destructive: true }
             ]}
             onPress={({ nativeEvent }) => {
@@ -121,8 +149,14 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     setPresetMealName(preset.name);
                     setPresetMealKcals(preset.kcalPerServing);
                 } else if (nativeEvent.name === 'Search') {
+                    const searchString = preset.name.trim();
+                    const fixedForRegex = searchString
+                        .replace('(', '\\(')
+                        .replace(')', '\\)')
+                        .replace('[', '\\[')
+                        .replace(']', '\\]')
                     const searchParams: SearchByMealParams = {
-                        prefillSearch: `^${preset.name.trim()}$`
+                        prefillSearch: `^${fixedForRegex}$`
                     };
                     props.navigation.navigate(NavigationPages.SEARCH_BY_MEAL, searchParams);
                 } else if (nativeEvent.name === 'Add to Today') {
@@ -138,19 +172,25 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                             },
                         }
                     });
+                } else if (nativeEvent.name === 'Reset Usage') {
+                    resetUsage(preset.id);
                 } else if (nativeEvent.name === 'Delete') {
                     deletePreset(preset.id);
                 }
             }}>
 
-            <View style={{ flexDirection: 'row', gap: 20, padding: 3 }}>
+            <View style={{ flexDirection: 'row', gap: 20, padding: 3, alignItems: 'center' }}>
                 <Text
                     style={bespokeStyle('label', { flexGrow: 1, flexShrink: 1 })}
                     adjustsFontSizeToFit
                     numberOfLines={Math.floor(preset.name.length / 50) + 1}
                 >{formatMealName(preset.name)}</Text>
-                <Text style={styles.label}>{preset.kcalPerServing}kcal</Text>
+                <View style={{ flexDirection: 'column', gap: 2, alignItems: 'flex-end'}}>
+                    <Text style={bespokeStyle('label', { fontSize: 16 })}>{preset.kcalPerServing}kcal</Text>
+                    <Text style={styles.subLabel}>{preset.usageCount ?? 0} uses</Text>
+                </View>
             </View>
+            <HorizontalLine marginHorizontal={5} lineColor={'rgba(0,0,0,0.3)'} />
         </ContextMenu>
     )
 
@@ -166,6 +206,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
             );
         });
         if (index >= 0) {
+            acc[index].times += 1;
             acc[index].times += 1;
         } else {
             acc.push({
@@ -183,7 +224,13 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
         .slice(0, 6);
 
     const filteredPresets = getPresetsMatchingFilter(presets, filter)
-    const sortedPresets = sortPresets(filteredPresets);
+    const sortedPresets = sortPresetsByName(filteredPresets);
+    if (sortMode === SortingMode.LAST_USAGE) {
+        sortedPresets.sort((preset1, preset2) => (preset2.lastUsageTime ?? 0) - (preset1.lastUsageTime ?? 0));
+    }
+    if (sortMode === SortingMode.USAGE_COUNT) {
+        sortedPresets.sort((preset1, preset2) => (preset2.usageCount ?? 0) - (preset1.usageCount ?? 0));
+    }
 
     return (
         <SafeAreaView style={{
@@ -226,6 +273,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                                 return <Pressable key={`${suggestion.name}-${suggestion.kcalPerServing}`} onPress={() => {
                                     setPresetMealName(suggestion.name);
                                     setPresetMealKcals(suggestion.kcalPerServing);
+                                    setPresetMealPastUsage(suggestion.times);
                                 }} style={{padding: 5}}>
                                     <Text style={styles.subLabel}>{formatMealName(suggestion.name)} ({suggestion.kcalPerServing}kcal)</Text>
                                 </Pressable>
@@ -234,6 +282,18 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     </View>
                 )}
             </View>
+            <View style={{paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center'}}>
+                <Text style={bespokeStyle('sublabel', {fontSize: 14, flexGrow: 1, flexShrink: 1})}>Sort</Text>
+                <RowButtonSelector<SortingMode>
+                    options={[
+                        { value: SortingMode.NAME, label: 'Name' },
+                        { value: SortingMode.USAGE_COUNT, label: 'Usage Count' },
+                        { value: SortingMode.LAST_USAGE, label: 'Last Usage' },
+                    ]}
+                    selected={sortMode}
+                    onSelectOption={(option) => setSortMode(option)}
+                />
+            </View>
             <View>
                 <TextInput
                     style={styles.input}
@@ -241,7 +301,7 @@ export function PresetsPage(props: NavigatedScreenProps): JSX.Element {
                     value={filter}
                     placeholder='Filter'
                     placeholderTextColor='grey'
-                />
+                    />
             </View>
             <ScrollView
                 style={{flexDirection: 'column'}}

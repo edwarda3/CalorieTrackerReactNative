@@ -20,4 +20,8 @@ export interface MealData {
     kcalPerServing: number;
 }
 
-export type MealPreset = Omit<MealData, 'time'|'servings'> & { id: string };
+export type MealPreset = Omit<MealData, 'time'|'servings'> & {
+    id: string
+    usageCount?: number;
+    lastUsageTime?: number;
+};

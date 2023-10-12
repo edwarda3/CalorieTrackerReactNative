@@ -10,7 +10,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import Collapsible from 'react-native-collapsible';
 import Toast from 'react-native-toast-message';
-import { sortPresets } from './PresetsPage';
+import { sortPresetsByName } from './PresetsPage';
 import { getTimeHourMinutes } from '../types/Dates';
 import { ExtensibleButton } from '../components/Buttons';
 import { formatMealName } from '../styles/Formatter';
@@ -39,6 +39,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
     const dayKey = options.dateString.slice(8, 10);
     const [availablePresets, setAvailablePresets] = useState<MealPreset[]>([]);
     const [canSavePreset, setCanSavePreset] = useState<boolean>(false);
+    const [presetWasUsed, setPresetWasUsed] = useState<string|null>(null);
     const [fetched, setFetched] = useState<boolean>(false);
     const [name, setName] = useState<string>('');
     const [showSuggestions, setShowSuggestions] = useState<boolean>(true);
@@ -111,6 +112,9 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     kcalPerServing: kcalPer,
                 }
             );
+            if (presetWasUsed) {
+                logPresetUsage(presetWasUsed);
+            }
             setSubmitting(false);
             props.navigation.goBack();
         }
@@ -136,6 +140,16 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         });
     }
 
+    const logPresetUsage = async (id: string) => {
+        const presets = await DatabaseHandler.getInstance().getPresets();
+        const usedPresetIndex = presets.findIndex((fetched) => id === fetched.id);
+        if (usedPresetIndex >= 0) {
+            presets[usedPresetIndex].lastUsageTime = Date.now();
+            presets[usedPresetIndex].usageCount = (presets[usedPresetIndex].usageCount ?? 0) + 1;
+        }
+        await DatabaseHandler.getInstance().setPresets(presets);
+    }
+
     useFocusEffect(
         useCallback(() => {
             props.navigation.setOptions({
@@ -146,7 +160,17 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
             });
 
             DatabaseHandler.getInstance().getAppSettings().then((appSettings) => setSettings(appSettings));
-            DatabaseHandler.getInstance().getPresets().then(presets => setAvailablePresets(presets));
+            DatabaseHandler.getInstance().getPresets().then(presets => {
+                setAvailablePresets(presets);
+                if (options.prefill?.name && options.prefill?.kcalPerServing) {
+                    const existingPreset = _.find(presets, (preset) => (
+                        preset.name === options.prefill?.name && preset.kcalPerServing === options.prefill?.kcalPerServing
+                    ));
+                    if (existingPreset) {
+                        setPresetWasUsed(existingPreset.id);
+                    }
+                }
+            });
 
             // on first load, if we have a name/time passed, we need to retrieve the value from the database.
             // If adding a new entry, the itemName/itemTime are nullish.
@@ -183,7 +207,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
         const presetsMatchingAllParts = (availablePresets ?? []).filter((preset) =>
             _.isEmpty(nameSearchParts) || nameSearchParts.every((namePart) => preset.name.toLowerCase().includes(namePart.toLowerCase()))
         );
-        const sortedPresets = sortPresets(presetsMatchingAllParts);
+        const sortedPresets = sortPresetsByName(presetsMatchingAllParts);
         return sortedPresets;
     }
     const matchedPresets = getMatchingPresets();
@@ -224,6 +248,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                             onChangeText={(text) => {
                                 setName(text);
                                 setCanSavePreset(true);
+                                setPresetWasUsed(null);
                             }}
                             clearButtonMode='while-editing'
                             value={name}
@@ -252,6 +277,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                                         setKcalPer(preset.kcalPerServing);
                                         setCanSavePreset(false);
                                         setShowSuggestions(false);
+                                        setPresetWasUsed(preset.id);
                                     }}>
                                         <Text style={bespokeStyle('label', { color: '#777' })}>{formatMealName(preset.name)} ({preset.kcalPerServing}kcal)</Text>
                                     </Pressable>
@@ -268,6 +294,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                         onChangeText={(text) => {
                             setKcalPer(Number(text));
                             setCanSavePreset(true);
+                            setPresetWasUsed(null);
                         }}
                         value={kcalPer.toString()}
                         onFocus={() => setShowSuggestions(false)}
