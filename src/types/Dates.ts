@@ -121,7 +121,7 @@ export const formatDate = (dateString: string, showDate: boolean = true): string
  * a roundUpAt less than .9 will result in that rendering as 2 months ago.
  */
 const getRelativeTimeCount = (difference: number, unit: string, roundUpAt: number = 1) => {
-    if (difference === 0) return 'Today';
+    if (difference === 0) return unit === 'minutes' ? 'Just now' : 'Today';
     const direction = difference < 0 ? 'ago' : 'later';
     let diffMagnitude = Math.abs(difference);
     const decimalDifference = diffMagnitude - Math.floor(diffMagnitude);
@@ -137,4 +137,14 @@ export const getDifferenceInDates = (eventDateString: string, compareAgainstDate
     if (Math.floor(Math.abs(years)) !== 0) return getRelativeTimeCount(years, 'year');
     if (Math.floor(Math.abs(months)) !== 0) return getRelativeTimeCount(months, 'month');
     return getRelativeTimeCount(days, 'day');
+}
+export const getDifferenceInTimeFromNow = (eventTime: string) => {
+    const now = new Date();
+    const nowHours = now.getHours().toString().padStart(2, '0')
+    const nowMinutes = now.getMinutes().toString().padStart(2, '0');
+    const [eventHours, eventMinutes] = eventTime.split(':');
+    const diffHours = parseInt(eventHours) - parseInt(nowHours);
+    const diffMinutes = parseInt(eventMinutes) - parseInt(nowMinutes);
+    if (Math.floor(Math.abs(diffHours)) !== 0) return getRelativeTimeCount(diffHours, 'hour');
+    return getRelativeTimeCount(diffMinutes, 'minute');
 }

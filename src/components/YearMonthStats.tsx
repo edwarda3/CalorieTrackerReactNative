@@ -17,26 +17,27 @@ export interface YearMonthStatsProps {
 
 export const YearMonthStats = (props: YearMonthStatsProps) => {
     let totalDays = 0;
+    let totalKcals = 0;
     const totalPerDay: number[] = [];
     const startingMinCalc = 999999;
     let minKcals = startingMinCalc;
     let maxKcals = 0;
     const today = getDateString(new Date());
-    const totalKcals = _.reduce(props.monthData ?? {}, (acc, dayData, day) => {
+    _.forEach(props.monthData ?? {}, (dayData, day) => {
         if (_.isEmpty(dayData) || _.sumBy(dayData, (day) => (day.kcalPerServing ?? 0) * (day.servings ?? 0)) === 0) {
             // skip the day if there is a sum of 0
-            return acc;
+            return;
         }
         totalDays += 1;
         const allKcals = _.sum(_.map(dayData, (meal) => meal.kcalPerServing * meal.servings));
+        totalKcals += allKcals;
         totalPerDay.push(allKcals);
         if (today !== `${props.yearMonthKey}-${day}` && allKcals < minKcals) {
             // exclude "today" from the minimum stat, otherwise the partial day will usually be the lowest 
             minKcals = allKcals;
         }
         maxKcals = Math.max(allKcals, maxKcals)
-        return acc + allKcals;
-    }, 0);
+    });
     const avgKcalsPerDay = totalDays > 0 ? Math.floor(totalKcals / totalDays) : 0;
     const medianKcals = getMedian(totalPerDay);
     const halfIndex = Math.floor(totalPerDay.length / 2);

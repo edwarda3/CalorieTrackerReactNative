@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Button, FlatList, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { NavigatedScreenProps, NavigationPages, navigateToItemPage } from '../types/Navigation';
 import _ from 'lodash';
-import { formatDate, getDateString } from '../types/Dates';
+import { formatDate, getDateString, getDifferenceInDates } from '../types/Dates';
 import { MealData, MealPreset } from '../types/Model';
 import { DatabaseHandler } from '../data/database';
 import { useFocusEffect } from '@react-navigation/native';
@@ -38,6 +38,7 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
 
     const [mealData, setMealData] = useState<MealData[]>([]);
     const [refreshing, setRefreshing] = useState<boolean>(false);
+    const [showRelativeTime, setShowRelativeTime] = useState<boolean>(false);
 
     const refresh = async () => {
         setRefreshing(true);
@@ -52,11 +53,11 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
 
     useEffect(() => {
         props.navigation.setOptions({
-            title: formatDate(options.dateString),
+            title: !showRelativeTime ? formatDate(options.dateString) : getDifferenceInDates(options.dateString),
             headerRight: () => <Button title='Add' onPress={() => props.navigation.navigate(NavigationPages.ITEM, options)} />
         });
         refresh();
-    }, []);
+    }, [showRelativeTime]);
 
     useFocusEffect(
         useCallback(() => {
@@ -87,6 +88,8 @@ export function DayPage(props: NavigatedScreenProps): JSX.Element {
                     const existingPreset = presets?.find((preset) => preset.name === item.name);
                     return <MealEntryListItem
                         meal={item}
+                        showRelativeTime={showRelativeTime}
+                        onTimePressed={() => setShowRelativeTime(!showRelativeTime)}
                         actions={[
                             {
                                 title: 'Edit',

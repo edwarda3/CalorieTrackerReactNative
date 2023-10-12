@@ -301,7 +301,7 @@ export function ItemPage(props: NavigatedScreenProps): JSX.Element {
                     />
                 </View>
                 <View style={bespokeStyle('formField', {paddingRight: 10})}>
-                    <Text style={{ flexGrow: 1 }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
+                    <Text style={{ flexGrow: 1, fontSize: 18, fontWeight: 'bold' }}>Total Kcal: {kcalPer * (isNaN(Number(servingsStr)) ? 1 : Number(servingsStr))}</Text>
                     <Button title={options.itemName ? 'Submit' : 'Add'} onPress={() => submitEntry()} disabled={submitting} />
                 </View>
                 {!_.isEmpty(errors) && _.map(errors, (errorText, index) => <Text key={`error-${index}`} style={styles.errorText}>{errorText}</Text>)}

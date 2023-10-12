@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Button, Keyboard, Text, TextInput, View } from 'react-native';
+import { Button, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { bespokeStyle, styles } from '../styles/Styles';
 import { DataStore } from '../types/Model';
 import _ from 'lodash';
@@ -45,6 +45,9 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
     const [dateStringCursor, setDateStringCursor] = useState<string | null>(null);
     const [foundResult, setFoundResult] = useState<Array<DaySearchResult>>([]);
     const [totalFound, setTotalFound] = useState<number>(0);
+    const [showRelativeDate, setShowRelativeDate] = useState<boolean>(false);
+    const [showRelativeTime, setShowRelativeTime] = useState<boolean>(false);
+    const [showCaloriePercentage, setShowCaloriePercentage] = useState<boolean>(false);
 
     const refresh = async () => {
         const dataStore = await DatabaseHandler.getInstance().getAllKnownData();
@@ -108,21 +111,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
 
     const getDaySearchResultDisplay = (daySearchResult: DaySearchResult) => {
         const { dayResult, dateString, matchedItemTotalKcal, daySearchTotalKcal } = daySearchResult;
-        return <ContextMenu
-            previewBackgroundColor='rgba(0,0,0,0)'
-            key={dateString}
-            actions={[
-                { title: 'Go to Day' }
-            ]}
-            onPress={({ nativeEvent }) => {
-                if (nativeEvent.name === 'Go to Day') {
-                    const dayPageParams: DayPageParams = {
-                        dateString: dateString,
-                    }
-                    props.navigation.push(NavigationPages.DAY, dayPageParams)
-                }
-            }}
-        >
+        return <View>
             <View style={{ padding: 10 }}>
                 <View style={{ flexDirection: 'row', gap: 10 }}>
                     {dataStore && <SFSymbol
@@ -133,71 +122,80 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                         color={getColorPerCalories(dataStore.settings.thresholds, daySearchTotalKcal)}
                         weight='regular'
                     />}
-                    <Text style={bespokeStyle('subLabel', { flexGrow: 1 })}>{formatDate(dateString)} ({getDifferenceInDates(dateString)})</Text>
-                    <Text style={styles.subLabel}>{matchedItemTotalKcal} of {daySearchTotalKcal}kcal ({Math.round(100 * (matchedItemTotalKcal / daySearchTotalKcal))}% of day)</Text>
+                    <Pressable style={{ flexGrow: 1 }} onPress={() => setShowRelativeDate(!showRelativeDate)}>
+                        <Text style={styles.subLabel}>{!showRelativeDate ? formatDate(dateString) : getDifferenceInDates(dateString)}</Text>
+                    </Pressable>
+                    <Pressable onPress={() => setShowCaloriePercentage(!showCaloriePercentage)}>
+                        <Text style={styles.subLabel}>{!showCaloriePercentage ? `${matchedItemTotalKcal} of ${daySearchTotalKcal}kcal` : `${Math.round(100 * (matchedItemTotalKcal / daySearchTotalKcal))}% of day`}</Text>
+                    </Pressable>
                 </View>
                 {_.map(dayResult, (mealData) => {
                     const existingPreset = dataStore?.presets.find((preset) => preset.name === mealData.name);
-                    return <MealEntryListItem key={`${mealData.name}-${mealData.time}-${dateString}`} meal={mealData} actions={[
-                        {
-                            title: 'Edit Entry', onPress: () => {
-                                navigateToItemPage({
-                                    appSettings: dataStore?.settings!,
-                                    navigation: props.navigation,
-                                    params: {
-                                        dateString: dateString,
-                                        itemName: mealData.name,
-                                        itemTime: mealData.time,
-                                    }
-                                });
-                            }
-                        },
-                        {
-                            title: 'Copy Entry to Today', onPress: () => {
-                                navigateToItemPage({
-                                    appSettings: dataStore?.settings!,
-                                    navigation: props.navigation,
-                                    params: {
-                                        dateString: getDateString(new Date()),
-                                        prefill: _.omit(mealData, 'time'),
-                                    }
-                                });
-                            }
-                        },
-                        {
-                            title: !!existingPreset ? 'Preset Exists' : 'Save as Preset', disabled: !!existingPreset || !dataStore, onPress: async () => {
-                                if (!dataStore) return;
-                                const newPresets = _.cloneDeep(dataStore?.presets);
-                                newPresets.push({
-                                    id: Date.now().toString(),
-                                    name: mealData.name,
-                                    kcalPerServing: mealData.kcalPerServing
-                                })
-                                await DatabaseHandler.getInstance().setPresets(newPresets);
-                                setDatastore({
-                                    ...dataStore,
-                                    presets: newPresets
-                                });
-                                Toast.show({
-                                    type: 'success',
-                                    text1: `Successfully saved preset ${formatMealName(mealData.name)}`
-                                })
-                            }
-                        },
-                        {
-                            title: 'Go to Day',
-                            onPress: () => {
-                                const dayPageParams: DayPageParams = {
-                                    dateString: dateString,
+                    return <MealEntryListItem
+                        key={`${mealData.name}-${mealData.time}-${dateString}`} meal={mealData}
+                        onTimePressed={() => setShowRelativeTime(!showRelativeTime)}
+                        showRelativeTime={showRelativeTime}
+                        actions={[
+                            {
+                                title: 'Edit Entry', onPress: () => {
+                                    navigateToItemPage({
+                                        appSettings: dataStore?.settings!,
+                                        navigation: props.navigation,
+                                        params: {
+                                            dateString: dateString,
+                                            itemName: mealData.name,
+                                            itemTime: mealData.time,
+                                        }
+                                    });
                                 }
-                                props.navigation.navigate(NavigationPages.DAY, dayPageParams)
+                            },
+                            {
+                                title: 'Copy Entry to Today', onPress: () => {
+                                    navigateToItemPage({
+                                        appSettings: dataStore?.settings!,
+                                        navigation: props.navigation,
+                                        params: {
+                                            dateString: getDateString(new Date()),
+                                            prefill: _.omit(mealData, 'time'),
+                                        }
+                                    });
+                                }
+                            },
+                            {
+                                title: !!existingPreset ? 'Preset Exists' : 'Save as Preset', disabled: !!existingPreset || !dataStore, onPress: async () => {
+                                    if (!dataStore) return;
+                                    const newPresets = _.cloneDeep(dataStore?.presets);
+                                    newPresets.push({
+                                        id: Date.now().toString(),
+                                        name: mealData.name,
+                                        kcalPerServing: mealData.kcalPerServing
+                                    })
+                                    await DatabaseHandler.getInstance().setPresets(newPresets);
+                                    setDatastore({
+                                        ...dataStore,
+                                        presets: newPresets
+                                    });
+                                    Toast.show({
+                                        type: 'success',
+                                        text1: `Successfully saved preset ${formatMealName(mealData.name)}`
+                                    })
+                                }
+                            },
+                            {
+                                title: 'Go to Day',
+                                onPress: () => {
+                                    const dayPageParams: DayPageParams = {
+                                        dateString: dateString,
+                                    }
+                                    props.navigation.navigate(NavigationPages.DAY, dayPageParams)
+                                }
                             }
-                        }
-                    ]} />
+                        ]}
+                    />
                 })}
             </View>
             <HorizontalLine />
-        </ContextMenu>
+        </View>
     }
 
     const getTotalKcalsFromSearchResult = (results: DaySearchResult[]) => _.sumBy(results, (result) => result.matchedItemTotalKcal);
@@ -256,7 +254,7 @@ export const SearchByMeal = (props: NavigatedScreenProps) => {
                     locale='en'
                 />
             </Collapsible>
-            <View style={{flexDirection: 'row', gap: 10, paddingHorizontal: 10, marginTop: 10}}>
+            <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 10, marginTop: 10 }}>
                 <Text style={bespokeStyle('subLabel', { flexGrow: 1, flexShrink: 1 })}>{totalFound}{dateStringCursor ? '+' : ''} results found</Text>
                 {showDateFilters && !_.isEmpty(foundResult) && <Text style={styles.subLabel}>{getTotalKcalsFromSearchResult(foundResult)} kcals total</Text>}
             </View>

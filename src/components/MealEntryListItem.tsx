@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { MealData } from '../types/Model';
 import ContextMenu, { ContextMenuAction } from 'react-native-context-menu-view';
 import _ from 'lodash';
-import { Text, View, ViewStyle } from 'react-native';
+import { Pressable, Text, View, ViewStyle } from 'react-native';
 import { styles } from '../styles/Styles';
-import { formatToAmPm } from '../types/Dates';
+import { formatToAmPm, getDifferenceInTimeFromNow } from '../types/Dates';
 import { formatMealName } from '../styles/Formatter';
 
 export interface MealEntryContextMenuAction extends ContextMenuAction {
@@ -16,10 +16,12 @@ export interface MealEntryListItemProps {
     meal: MealData;
     actions: Array<MealEntryContextMenuAction>;
     containerStyling?: ViewStyle;
+    onTimePressed?: () => void;
+    showRelativeTime?: boolean;
 }
 
 const maxCharsPerLine = 20;
-export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntryListItemProps) => {
+export const MealEntryListItem = ({ meal, actions, containerStyling, ...props }: MealEntryListItemProps) => {
     const mealName = formatMealName(meal.name);
     const mealNameNumberOfLines = Math.floor(mealName.length / maxCharsPerLine) + 1;
     return <ContextMenu
@@ -31,7 +33,9 @@ export const MealEntryListItem = ({ meal, actions, containerStyling }: MealEntry
         }}>
         <View style={{ padding: 10, flexDirection: 'row', gap: 20, alignItems: 'center', ...(containerStyling ?? {}) }}>
             <View style={{ flexDirection: 'column', flexGrow: 1, flexShrink: 1 }}>
-                <Text style={styles.subLabel}>{formatToAmPm(meal.time)}</Text>
+                <Pressable onPress={() => props.onTimePressed?.()}>
+                    <Text style={styles.subLabel}>{!props.showRelativeTime ? formatToAmPm(meal.time) : getDifferenceInTimeFromNow(meal.time)}</Text>
+                </Pressable>
                 <Text
                     style={styles.label}
                     adjustsFontSizeToFit
